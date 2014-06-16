@@ -10,7 +10,7 @@ distribution like [anaconda](http://continuum.io).
 Once you have that, just:
 
 ```
-pip install reducer
+pip install --use-wheels reducer
 ```
 
 You can, if you want, clone from the source on github and run ``python
