@@ -14,7 +14,8 @@ class PyTest(TestCommand):
         errcode = pytest.main(self.test_args)
         sys.exit(errcode)
 
-INSTALL_REQUIRES = ['astropy>=0.3', 'numpy', 'scipy', 'ccdproc', 'photutils']
+INSTALL_REQUIRES = ['astropy>=0.3', 'numpy', 'scipy',
+                    'ccdproc', 'photutils', 'ipython>=2.0', 'msumastro']
 
 setup(
     name='reducer',
