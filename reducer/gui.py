@@ -230,7 +230,6 @@ class ImageTreeWidget(object):
             if children and index:
                 # This should be impossible...
                 raise RuntimeError("What the ???")
-            print("Parents are:", parents)
             parent_string = self._id_string(parents)
             depth = len(parents)
             try:
