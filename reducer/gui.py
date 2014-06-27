@@ -1,8 +1,12 @@
 from __future__ import (division, print_function, absolute_import,
                         unicode_literals)
+from collections import OrderedDict
+import os
 
 from IPython.html import widgets
 import matplotlib.pyplot as plt
+import msumastro
+
 
 def load_image_click(b):
     """
@@ -175,3 +179,105 @@ class ImageDisplayStuff(widgets.ContainerWidget):
     def display(self):
         from IPython.display import display
         display(self)
+
+
+class ImageTreeWidget(object):
+    def __init__(self, tree):
+        if not isinstance(tree, msumastro.TableTree):
+            raise ValueError("argument must be a TableTree")
+        self._tree = tree
+        self._id_string = lambda l: os.path.join(*[str(s) for s in l]) if l else ''
+        self._gui_objects = OrderedDict()
+        self._top = None
+        self._create_gui()
+
+    @property
+    def top(self):
+        return self._top
+
+    def _get_index_in_children(self, widget):
+        parent = widget.parent
+        for idx, wid in enumerate(parent.children):
+            if widget is wid:
+                return idx
+
+    def _replace_child(self, parent, old=None, new=None):
+        """
+        Replace old child with new.
+
+        Parameters
+        ----------
+
+        parent : IPython widget
+            String that identifies parent in gui
+
+        old : IPython.widget
+            Child to be replaced
+
+        new : IPython widget or None
+            Replacement child (or None)
+
+        Children are stored as a tuple so they are immutable.
+        """
+        current_children = list(parent.children)
+        for idx, child in enumerate(current_children):
+            if child is old:
+                current_children[idx] = new
+        parent.children = current_children
+
+    def _create_gui(self):
+        for parents, children, index in self._tree.walk():
+            if children and index:
+                # This should be impossible...
+                raise RuntimeError("What the ???")
+            print("Parents are:", parents)
+            parent_string = self._id_string(parents)
+            depth = len(parents)
+            try:
+                key = self._tree.tree_keys[depth]
+            except IndexError:
+                key = ''
+            if depth == 0:
+                self._top = widgets.AccordionWidget(description=key)
+                self._gui_objects[parent_string] = self._top
+
+            parent = self._gui_objects[parent_string]
+            # Do I have a children? If so, add them as tabs
+            if children:
+                child_objects = []
+                for child in children:
+                    desc = ": ".join([key, str(child)])
+                    child_container = widgets.AccordionWidget(description=desc)
+                    child_container.parent = self._gui_objects[parent_string]
+                    child_string = os.path.join(parent_string, str(child))
+                    self._gui_objects[child_string] = child_container
+                    child_objects.append(child_container)
+                parent.children = child_objects
+            # Do I have only a list? Populate a select box with those...
+            if index:
+                new_text = widgets.SelectWidget(values=index)
+                index_string = self._id_string([parent_string, 'files'])
+                self._gui_objects[index_string] = new_text
+                old_parent = parent
+                grandparent = old_parent.parent
+                desc = old_parent.description
+                s_or_not = ['', 's']
+                n_files = len(index)
+                desc += " ({0} image{1})".format(n_files,
+                                                 s_or_not[n_files > 1])
+                parent = widgets.ContainerWidget(description=desc)
+                parent.children = [new_text]
+                parent.parent = grandparent
+                self._replace_child(grandparent, old=old_parent, new=parent)
+
+    def display(self):
+        from IPython.display import display
+        display(self._top)
+        self._top.set_css({'width': '50%'})
+        for name, obj in self._gui_objects.iteritems():
+            if isinstance(obj, widgets.AccordionWidget):
+                for idx, child in enumerate(obj.children):
+                    if not isinstance(child, widgets.SelectWidget):
+                        obj.set_title(idx, child.description)
+            #obj.set_css({'width': '100%',})
+            #obj.add_class('well')
