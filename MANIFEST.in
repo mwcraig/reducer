@@ -1,1 +1,1 @@
-recursive-include reducer *.ipynb *.csv
+recursive-include reducer *.ipynb *.csv *.png
