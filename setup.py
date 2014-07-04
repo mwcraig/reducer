@@ -39,7 +39,7 @@ setup(
     cmdclass={'test': PyTest},
     entry_points={
         'console_scripts': [
-            ('foo.py = '
+            ('reducer = '
              'reducer:main')
         ]
     },
