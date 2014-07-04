@@ -1,20 +1,21 @@
 This "package" provides an ipython notebook for reducing and doing stellar
 photometry on CCD data.
 
+# WARNING: THIS PACKAGE CURRENTLY DOES NO REDUCTION
+
+Right now the this package is purely cosmetic -- there is just enough pseudo-functionality to get some useful feedback on the interface.
+
+Comments are very, very much welcome. Please comment by [making a new issue on Github](https://github.com/mwcraig/reducer/issues) (if, by chance, a reasonably senior academic is using this, you can send feedback by email; anyone else should *really* create a github account so you can make an issue :)).
+
 # Installation
 
 You need python (2.7, or 3.4 or higher) and the [SciPy
 stack](http://scipy.org). The easiest way to the get the full stack is from a
 distribution like [anaconda](http://continuum.io).
 
-Once you have that, just:
-
-```
-pip install --use-wheels reducer
-```
-
-You can, if you want, clone from the source on github and run ``python
-setup.py install``.
+You can, if you want, grab the source on github (there is a "Download as ZIP"
+link on the right you can use if you don't want to mess git), change into the
+source directory, and run ``python setup.py install``.
 
 # Usage
 
@@ -34,7 +35,18 @@ the data is, though it can be), then type:
 reducer
 ```
 
-This will create a new template notebook and launch the notebook in a browser window; just do what it says in the notebook and reduced data (and photometry!) will be yours.
+This will create a new template notebook. 
+
+To launch the notebook in a browser window type:
+
+
+followed by
+
+```
+ipython notebook
+```
+
+Then just do what it says in the notebook and reduced data (and photometry!) will be yours.
 
 # Under the hood
 
