@@ -2,10 +2,17 @@ from __future__ import (division, print_function, absolute_import,
                         unicode_literals)
 from collections import OrderedDict
 import os
+from io import BytesIO
 
 from IPython.html import widgets
 import matplotlib.pyplot as plt
+import numpy as np
+
+from astropy.io import fits
+
 import msumastro
+
+from .notebook_dir import get_data_path
 
 
 def load_image_click(b):
@@ -272,11 +279,76 @@ class ImageTreeWidget(object):
     def display(self):
         from IPython.display import display
         display(self._top)
-        self._top.set_css({'width': '50%'})
+        self.format()
+
+    def format(self):
+        #self._top.set_css({'width': '50%'})
         for name, obj in self._gui_objects.iteritems():
             if isinstance(obj, widgets.AccordionWidget):
                 for idx, child in enumerate(obj.children):
                     if not isinstance(child, widgets.SelectWidget):
                         obj.set_title(idx, child.description)
-            #obj.set_css({'width': '100%',})
-            #obj.add_class('well')
+
+
+def ndarray_to_png(x):
+    from PIL import Image
+    shape = np.array(x.shape)
+    # Reverse order for reasons I do not understand...
+    shape = shape[::-1]
+    if len(shape) != 2:
+        return
+    aspect = shape[1]/shape[0]
+    width = 600  # pixels
+    new_shape = np.asarray(width/shape[0]*aspect*shape, dtype='int')
+    x = np.asarray(Image.fromarray(x).resize(new_shape))
+    x = (x - x.mean()) / x.std()
+    x[x>=3] = 2.99
+    x[x<-3] = -3.0
+    x = (x - x.min()) / (1.1*x.max() - x.min())    
+    img = Image.fromarray((x*256).astype('uint8'))
+    img_buffer = BytesIO()
+    img.save(img_buffer, format='png')
+    return img_buffer.getvalue()
+
+
+class FitsViewerWidget(object):
+
+    def __init__(self):
+        self._top = widgets.TabWidget(visible=False)
+        self._data = None  # hdu.data
+        self._png_image = None  # ndarray_to_png(self._data)
+        self._header = ''
+        self._image = widgets.ImageWidget()
+        self._header_display = widgets.TextareaWidget(disabled=True)
+        self._top.children = [self._image, self._header_display]
+
+    @property
+    def top(self):
+        return self._top
+
+    def display(self):
+        from IPython.display import display
+        display(self._top)
+        self.format()
+
+    def format(self):
+        self._top.set_title(0, 'Image')
+        self._top.set_title(1, 'Header')
+        self._top.set_css('width', '100%')
+        self._header_display.set_css('width', '100%')
+
+    def _set_fits_file_callback(self):
+        def set_fits_file(name, fits_file):
+            import random
+            place_holder_files = ['flood-flat-001R.fit', 'SA112-SF1-001R1.fit']
+            use_file = random.choice(place_holder_files)
+            full_path = os.path.join(get_data_path(), use_file)
+            with fits.open(full_path) as hdulist:
+                hdu = hdulist[0]
+                self._data = hdu.data
+                self._header = hdu.header
+            self._header_display.value = repr(self._header)
+            self._image.value = ndarray_to_png(self._data)
+            self.top.visible = True
+
+        return set_fits_file
