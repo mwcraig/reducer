@@ -436,3 +436,51 @@ class ToggleContainerWidget(widgets.ContainerWidget):
         if child_tuples:
             child_tuples.insert(0, (self._checkbox, str('value')))
             link(*child_tuples)
+
+
+class ToggleMinMaxWidget(ToggleContainerWidget):
+    def __init__(self, *args, **kwd):
+        super(ToggleMinMaxWidget, self).__init__(*args, **kwd)
+        min_box = widgets.FloatTextWidget(description="Low threshold")
+        max_box = widgets.FloatTextWidget(description="High threshold")
+        self.container.children = [min_box, max_box]
+
+    def format(self):
+        hbox_these = [self, self.container]
+        for hbox in hbox_these:
+            hbox.remove_class('vbox')
+            hbox.add_class('hbox')
+
+
+class CombinerWidget(ToggleContainerWidget):
+    """
+    Widget for displaying options for ccdproc.Combiner.
+
+    Parameters
+    ----------
+
+    description : str, optional
+        Text displayed next to check box for selecting options.
+    """
+    def __init__(self, *args, **kwd):
+        super(CombinerWidget, self).__init__(*args, **kwd)
+        clipping_widget = ToggleContainerWidget(description="Clip before combining?")
+        min_max = ToggleMinMaxWidget(description="Clip by min/max?")
+        sigma_clip = ToggleMinMaxWidget(description="Sigma clip?")
+        clipping_widget.container.children = [min_max, sigma_clip]
+        self.container.children = [clipping_widget]
+        self.min_max = min_max
+        self.sigma_clip = sigma_clip
+
+    def display(self):
+        from IPython.display import display
+        display(self)
+        self.format()
+
+    def format(self):
+        self.set_css({'border': '1px grey solid', 'border-radius': '10px'})
+        self.min_max.format()
+        self.sigma_clip.format()
+        self._checkbox.add_class('h4')
+        #self.min_max.remove_class('vbox')
+        #self.min_max.add_class('hbox')
