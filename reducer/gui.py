@@ -302,9 +302,9 @@ def ndarray_to_png(x):
     new_shape = np.asarray(width/shape[0]*aspect*shape, dtype='int')
     x = np.asarray(Image.fromarray(x).resize(new_shape))
     x = (x - x.mean()) / x.std()
-    x[x>=3] = 2.99
-    x[x<-3] = -3.0
-    x = (x - x.min()) / (1.1*x.max() - x.min())    
+    x[x >= 3] = 2.99
+    x[x < -3] = -3.0
+    x = (x - x.min()) / (1.1*x.max() - x.min())
     img = Image.fromarray((x*256).astype('uint8'))
     img_buffer = BytesIO()
     img.save(img_buffer, format='png')
@@ -335,7 +335,7 @@ class FitsViewerWidget(object):
         self._top.set_title(0, 'Image')
         self._top.set_title(1, 'Header')
         self._top.set_css('width', '100%')
-        self._header_display.set_css('width', '100%')
+        self._header_display.set_css('width', '50%')
 
     def _set_fits_file_callback(self):
         def set_fits_file(name, fits_file):
@@ -352,3 +352,44 @@ class FitsViewerWidget(object):
             self.top.visible = True
 
         return set_fits_file
+
+
+class ImageBrowserWidget(widgets.ContainerWidget):
+    """docstring for ImageBrowserWidget"""
+    def __init__(self, tree, *args, **kwd):
+        super(ImageBrowserWidget, self).__init__(*args, **kwd)
+        self._tree_widget = ImageTreeWidget(tree)
+        self._fits_display = FitsViewerWidget()
+        self._fits_display.top.visible = False
+        self.children = [self.tree_widget, self.fits_display]
+        # Connect the select boxes to the image displayer
+        self._add_handler(self.tree_widget)
+
+    @property
+    def tree_widget(self):
+        return self._tree_widget.top
+
+    @property
+    def fits_display(self):
+        return self._fits_display.top
+
+    def display(self):
+        from IPython.display import display
+        display(self)
+        self.format()
+
+    def format(self):
+        self.remove_class('vbox')
+        self.add_class('hbox')
+        self._tree_widget.format()
+        self._fits_display.format()
+        self.tree_widget.set_css('width', '40%')
+
+    def _add_handler(self, node):
+        if isinstance(node, widgets.SelectWidget):
+            node.on_trait_change(self._fits_display._set_fits_file_callback(),
+                                 str('value'))
+            return
+        if hasattr(node, 'children'):
+            for child in node.children:
+                self._add_handler(child)
