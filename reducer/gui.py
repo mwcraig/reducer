@@ -393,3 +393,46 @@ class ImageBrowserWidget(widgets.ContainerWidget):
         if hasattr(node, 'children'):
             for child in node.children:
                 self._add_handler(child)
+
+
+class ToggleContainerWidget(widgets.ContainerWidget):
+    """
+    A widget whose state controls the visibility of its chilren.
+
+    Parameters
+    ----------
+
+    Same as parameters for a `~IPython.html.widgets.ContainerWidget`, but
+    note that the description of the ToggleContainerWidget is used to set the
+    description of the checkbox that controls the display.
+
+    Attributes
+    ----------
+
+    container : ContainerWidget
+        Object to which children should be added.
+
+    Notes
+    -----
+
+    Do *NOT* set the children of the ToggleContainerWidget; set the children
+    of ToggleContainerWidget.children
+    """
+    def __init__(self, *args, **kwd):
+        super(ToggleContainerWidget, self).__init__(*args, **kwd)
+        self._checkbox = widgets.CheckboxWidget(description=self.description)
+        self._container = widgets.ContainerWidget(description="Toggle-able container")
+        self.children = [self._checkbox, self._container]
+        self._container.on_trait_change(self._link_children, str('_children'))
+
+    @property
+    def container(self):
+        return self._container
+
+    def _link_children(self):
+        from IPython.utils.traitlets import link
+        child_tuples = [(child, str('visible')) for child
+                        in self._container.children]
+        if child_tuples:
+            child_tuples.insert(0, (self._checkbox, str('value')))
+            link(*child_tuples)
