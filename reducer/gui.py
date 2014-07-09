@@ -462,6 +462,19 @@ class ToggleContainerWidget(widgets.ContainerWidget):
         self._toggle_container.remove_class('start')
         self._toggle_container.add_class('center')
 
+    def add_child(self, child):
+        """
+        Append a child to the container part of the widget.
+
+        Parameters
+        ----------
+
+        child : IPython widget
+        """
+        temp = list(self.container.children)
+        temp.append(child)
+        self.container.children = temp
+
 
 class ToggleMinMaxWidget(ToggleContainerWidget):
     def __init__(self, *args, **kwd):
@@ -506,13 +519,24 @@ class CombinerWidget(ToggleContainerWidget):
         self.container.children = [self._clipping_widget, self._combine_method]
         self.min_max = min_max
         self.sigma_clip = sigma_clip
+        self.toggle.on_trait_change(set_color_for(self), str('value'))
+        self._combine_method.on_trait_change(set_color_for(self), str('value'))
 
     def display(self):
+        """
+        Display, and then format, this widget.
+
+        Most IPython widget formatting must be done after the widget is
+        created.
+        """
         from IPython.display import display
         display(self)
         self.format()
 
     def format(self):
+        """
+        Format the widget; must be invoked after displaying the widget.
+        """
         super(CombinerWidget, self).format()
         self._clipping_widget.format()
         self.container.set_css({'border': '1px grey solid', 'border-radius': '10px'})
@@ -520,3 +544,25 @@ class CombinerWidget(ToggleContainerWidget):
         self.sigma_clip.format()
         self._toggle_container.set_css('width', '100%')
         self._checkbox.set_css('width', '100%')
+
+    @property
+    def is_sane(self):
+        """
+        Indicates whether the combination of selected settings is at least
+        minimally remotely.
+        """
+        return self._combine_method.value != 'None'
+
+def set_color_for(a_widget):
+    def set_color(name, value):
+        if a_widget.toggle.value:
+            if not a_widget.is_sane:
+                a_widget.toggle.remove_class('btn-success')
+                a_widget.toggle.add_class('btn-warning')
+            else:
+                a_widget.toggle.remove_class('btn-warning')
+                a_widget.toggle.add_class('btn-success')
+        else:
+            a_widget.toggle.remove_class('btn-success')
+            a_widget.toggle.remove_class('btn-warning')
+    return set_color
