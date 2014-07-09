@@ -404,7 +404,10 @@ class ToggleContainerWidget(widgets.ContainerWidget):
 
     Same as parameters for a `~IPython.html.widgets.ContainerWidget`, but
     note that the description of the ToggleContainerWidget is used to set the
-    description of the checkbox that controls the display.
+    description of the checkbox that controls the display, AND
+
+    toggle_type : {'checkbox', 'button'}, optional
+        Specify the type of boolean widget used to toggle the display
 
     Attributes
     ----------
@@ -412,6 +415,8 @@ class ToggleContainerWidget(widgets.ContainerWidget):
     container : ContainerWidget
         Object to which children should be added.
 
+    toggle : ToggleButtonWidget or CheckboxWidget
+        The toggle object, provided primarily to allow styling of it.
     Notes
     -----
 
@@ -419,15 +424,27 @@ class ToggleContainerWidget(widgets.ContainerWidget):
     of ToggleContainerWidget.children
     """
     def __init__(self, *args, **kwd):
+        toggle_types = {'checkbox': widgets.CheckboxWidget,
+                        'button': widgets.ToggleButtonWidget}
+        toggle_type = kwd.pop('toggle_type', 'checkbox')
+        if toggle_type not in toggle_types:
+            raise ValueError('toggle_type must be one of '
+                             '{}'.format(toggle_type.keys()))
         super(ToggleContainerWidget, self).__init__(*args, **kwd)
-        self._checkbox = widgets.CheckboxWidget(description=self.description)
+        self._toggle_container = widgets.ContainerWidget(description='toggle holder')
+        self._checkbox = toggle_types[toggle_type](description=self.description)
+        self._toggle_container.children = [self._checkbox]
         self._container = widgets.ContainerWidget(description="Toggle-able container")
-        self.children = [self._checkbox, self._container]
+        self.children = [self._toggle_container, self._container]
         self._container.on_trait_change(self._link_children, str('_children'))
 
     @property
     def container(self):
         return self._container
+
+    @property
+    def toggle(self):
+        return self._checkbox
 
     def _link_children(self):
         from IPython.utils.traitlets import link
@@ -436,6 +453,14 @@ class ToggleContainerWidget(widgets.ContainerWidget):
         if child_tuples:
             child_tuples.insert(0, (self._checkbox, str('value')))
             link(*child_tuples)
+
+    def format(self):
+        self._toggle_container.set_css('padding', '3px')
+        self.container.set_css('padding', '0px 0px 0px 30px')
+        #self.container.set_css('border', '1px red solid')
+        #self._toggle_container.set_css('border', '1px red solid')
+        self._toggle_container.remove_class('start')
+        self._toggle_container.add_class('center')
 
 
 class ToggleMinMaxWidget(ToggleContainerWidget):
@@ -446,6 +471,7 @@ class ToggleMinMaxWidget(ToggleContainerWidget):
         self.container.children = [min_box, max_box]
 
     def format(self):
+        super(ToggleMinMaxWidget, self).format()
         hbox_these = [self, self.container]
         for hbox in hbox_these:
             hbox.remove_class('vbox')
@@ -464,11 +490,20 @@ class CombinerWidget(ToggleContainerWidget):
     """
     def __init__(self, *args, **kwd):
         super(CombinerWidget, self).__init__(*args, **kwd)
-        clipping_widget = ToggleContainerWidget(description="Clip before combining?")
+        self._clipping_widget = \
+            ToggleContainerWidget(description="Clip before combining?")
         min_max = ToggleMinMaxWidget(description="Clip by min/max?")
         sigma_clip = ToggleMinMaxWidget(description="Sigma clip?")
-        clipping_widget.container.children = [min_max, sigma_clip]
-        self.container.children = [clipping_widget]
+        self._clipping_widget.container.children = [min_max, sigma_clip]
+        self._combine_method = \
+            widgets.ToggleButtonsWidget(description="Combination method:",
+                                        values=[
+                                            'None',
+                                            'Average',
+                                            'Median'
+                                        ])
+
+        self.container.children = [self._clipping_widget, self._combine_method]
         self.min_max = min_max
         self.sigma_clip = sigma_clip
 
@@ -478,9 +513,10 @@ class CombinerWidget(ToggleContainerWidget):
         self.format()
 
     def format(self):
-        self.set_css({'border': '1px grey solid', 'border-radius': '10px'})
+        super(CombinerWidget, self).format()
+        self._clipping_widget.format()
+        self.container.set_css({'border': '1px grey solid', 'border-radius': '10px'})
         self.min_max.format()
         self.sigma_clip.format()
-        self._checkbox.add_class('h4')
-        #self.min_max.remove_class('vbox')
-        #self.min_max.add_class('hbox')
+        self._toggle_container.set_css('width', '100%')
+        self._checkbox.set_css('width', '100%')
