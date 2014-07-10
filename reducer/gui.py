@@ -87,8 +87,11 @@ class ImageSummary1(object):
 
 class MakeMasterButtons(widgets.ContainerWidget):
     """docstring for MakeMasterButtons"""
-    def __init__(self, calibration_types=None):
+    def __init__(self, calibration_types=None, bias=None):
         super(MakeMasterButtons, self).__init__()
+        settings = {}
+        if bias is not None:
+            settings["Bias"] = bias
         if calibration_types is None:
             calibration_types = ["Bias", "Dark", "Flat"]
         buttons = \
@@ -98,21 +101,23 @@ class MakeMasterButtons(widgets.ContainerWidget):
                                                      max=1, value=1)
         calib_container = widgets.ContainerWidget()
         calib_container.children = buttons
-        for button in buttons:
+        for calib_name, button in zip(calibration_types, buttons):
             button.parent = calib_container
-            button.on_click(self._change_my_color())
+            button.on_click(self._change_my_color(settings=settings["Bias"]))
         calib_container.parent = self
         self.calib_container = calib_container
         self.children = [calib_container, status_message]
 
-    def _change_my_color(self):
+    def _change_my_color(self, settings=None):
         def change_my_color(b):
             status_message = self.children[1]
+            if settings is not None:
+                print(settings)
             status_message.description = "Processing..."
             status_message.remove_class("progress-success")
             status_message.add_class(["progress", "progress-striped", "active"])
             status_message.visible = True
-            import time; time.sleep(3)
+            import time; time.sleep(1)
             status_message.description = "Done!"
             status_message.remove_class(["progress-striped", "active"])
             status_message.add_class("progress-success")
@@ -552,6 +557,64 @@ class CombinerWidget(ToggleContainerWidget):
         minimally remotely.
         """
         return self._combine_method.value != 'None'
+
+    def __str__(self):
+
+        value = ('SOME DAY I WOULD PRINT SETTINGS SO\n'
+            '\tTHEY ARE EMBEDDED IN THE NOTEBOOK\n'
+            '\t\tPR WELCOME :) mwcraig/reducer'
+            )
+        return value
+
+
+class CosmicRaySettingsWidget(ToggleContainerWidget):
+    def __init__(self, *args, **kwd):
+        descript = kwd.pop('description', 'Clean cosmic rays?')
+        kwd['description'] = descript
+        super(CosmicRaySettingsWidget, self).__init__(*args, **kwd)
+        cr_choices = widgets.DropdownWidget(
+            description='Method:',
+            values={'median': set_color_for, 'LACosmic': set_color_for}
+        )
+        self.container.children = [cr_choices]
+
+    def display(self):
+        from IPython.display import display
+        display(self)
+
+
+class SliceWidget(ToggleContainerWidget):
+    def __init__(self, *arg, **kwd):
+        super(SliceWidget, self).__init__(*arg, **kwd)
+        self._start = widgets.IntTextWidget(description='Start index:')
+        self._stop = widgets.IntTextWidget(description='Stop index (python-style):')
+        self._axis = widgets.RadioButtonsWidget(description='Overscan index:',
+                                                values=[0, 1])
+        self.add_child(self._start)
+        self.add_child(self._stop)
+        self.add_child(self._axis)
+
+    def format(self):
+        super(SliceWidget, self).format()
+        hbox_these = [self, self.container]
+        for hbox in hbox_these:
+            hbox.remove_class('vbox')
+            hbox.add_class('hbox')
+
+
+class ReductionSettings(widgets.ContainerWidget):
+    """docstring for ReductionSettings"""
+    def __init__(self, *arg, **kwd):
+        super(ReductionSettings, self).__init__(*arg, **kwd)
+        self._overscan = SliceWidget(description='Subtract overscan?')
+        self._trim = SliceWidget(description='Trim (specify region to keep)?')
+        self._cosmic_ray = CosmicRaySettingsWidget()
+        self.children = [self._overscan, self._trim, self._cosmic_ray]
+
+    def format(self):
+        for child in self.children:
+            child.format()
+
 
 def set_color_for(a_widget):
     def set_color(name, value):
