@@ -160,7 +160,7 @@ class ReduceContainer(widgets.ContainerWidget):
     def display(self):
         from IPython.display import display
         display(self)
-        self.set_css({'width': '100%'})
+        self.set_css({'width': '60%'})
         button = self.children[0]
         button.add_class("btn-block")
 
@@ -494,6 +494,8 @@ class ToggleMinMaxWidget(ToggleContainerWidget):
         for hbox in hbox_these:
             hbox.remove_class('vbox')
             hbox.add_class('hbox')
+        for child in self.container.children:
+            child.set_css('width', '30px')
 
 
 class CombinerWidget(ToggleContainerWidget):
@@ -600,6 +602,8 @@ class SliceWidget(ToggleContainerWidget):
         for hbox in hbox_these:
             hbox.remove_class('vbox')
             hbox.add_class('hbox')
+        self._start.set_css('width', '30px')
+        self._stop.set_css('width', '30px')
 
 
 class ReductionSettings(widgets.ContainerWidget):
@@ -610,6 +614,10 @@ class ReductionSettings(widgets.ContainerWidget):
         self._trim = SliceWidget(description='Trim (specify region to keep)?')
         self._cosmic_ray = CosmicRaySettingsWidget()
         self.children = [self._overscan, self._trim, self._cosmic_ray]
+
+    def display(self):
+        from IPython.display import display
+        display(self)
 
     def format(self):
         for child in self.children:
