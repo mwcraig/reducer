@@ -15,52 +15,49 @@ import msumastro
 from .notebook_dir import get_data_path
 
 
-def load_image_click(b):
-    """
-    I am an awful function. I rely on load_progress being already defined
-    outside my scope.
-
-    If the person who wrote me was virtous I would be a method on a custom
-    widget class. Obviously, he is not...
-    """
-    import time
-
-    container = b.container
-    container.load_progress.visible = True
-    sleep_for = 0.001
-    max_i = 2000
-    for i in range(max_i):
-        container.load_progress.value = i/max_i
-        time.sleep(sleep_for)
-    container.load_progress.visible = False
-    container.status_label.value = "Done loading"
-    container.status_label.add_class("alert")
-    container.status_label.add_class("alert-success")
-    container.status_label.visible = True
-    time.sleep(1)
-    container.status_label.visible = False
-
-
-class LoadContainer(object):
+class LoadContainer(widgets.ContainerWidget):
     """docstring for LoadContainer"""
-    def __init__(self):
-        super(LoadContainer, self).__init__()
-        self.load_container = \
-            widgets.ContainerWidget(description="Hold file loading info")
-        self.start_processing = \
-            widgets.ButtonWidget(description="Load image info")
+    def __init__(self, *args, **kwd):
+        data_directory = kwd.pop('data_dir', None)
+        super(LoadContainer, self).__init__(*args, **kwd)
+        self.description = "Hold file loading info"
+        self.button = \
+            widgets.ButtonWidget()
         # add container to the button object so it can introspect in the
         # on_click callback.
-        self.start_processing.container = self
-        self.start_processing.on_click(load_image_click)
+
+        # REPLACE THIS WITH A CLOSURE
+        self.button.container = self
+
         self.load_progress = widgets.FloatProgressWidget(min=0, max=1,
-                                                         step=0.01, value=0,
+                                                         step=0.01, value=1,
                                                          description="Loading",
                                                          visible=False)
         self.status_label = widgets.LatexWidget(visible=False)
-        self.load_container.children = [self.start_processing,
-                                        self.load_progress,
-                                        self.status_label]
+        self.children = [self.button,
+                         self.load_progress,
+                         self.status_label]
+
+    def display(self):
+        from IPython.display import display
+        display(self)
+        self.format()
+
+    def format(self):
+        self.remove_class('vbox')
+        self.add_class('hbox')
+        self.add_class('align-center')
+
+    def start_progress(self):
+        self.load_progress.visible = True
+        self.load_progress.description = "Loading"
+        self.load_progress.remove_class("progress-success")
+        self.load_progress.add_class(["progress", "progress-striped", "active"])
+
+    def end_progress(self):
+        self.load_progress.description = "Done!"
+        self.load_progress.remove_class(["progress-striped", "active"])
+        self.load_progress.add_class("progress-success")
 
 
 class ImageSummary1(object):
