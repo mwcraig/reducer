@@ -642,11 +642,28 @@ class CalibrationStepWidget(ToggleContainerWidget):
 class ReductionSettings(widgets.ContainerWidget):
     """docstring for ReductionSettings"""
     def __init__(self, *arg, **kwd):
+        allow_flat = kwd.pop('allow_flat', True)
+        allow_dark = kwd.pop('allow_dark', True)
+        allow_bias = kwd.pop('allow_bias', True)
         super(ReductionSettings, self).__init__(*arg, **kwd)
         self._overscan = SliceWidget(description='Subtract overscan?')
         self._trim = SliceWidget(description='Trim (specify region to keep)?')
         self._cosmic_ray = CosmicRaySettingsWidget()
-        self.children = [self._overscan, self._trim, self._cosmic_ray]
+        self._bias_calib = CalibrationStepWidget(description="Subtract bias?")
+        self._dark_calib = CalibrationStepWidget(description="Subtract dark?")
+        self._flat_calib = CalibrationStepWidget(description="Flat correct?")
+        children = [
+            self._overscan,
+            self._trim,
+            self._cosmic_ray
+        ]
+        if allow_bias:
+            children.append(self._bias_calib)
+        if allow_dark:
+            children.append(self._dark_calib)
+        if allow_flat:
+            children.append(self._flat_calib)
+        self.children = children
 
     def display(self):
         from IPython.display import display
