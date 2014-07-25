@@ -462,6 +462,11 @@ class ToggleContainerWidget(widgets.ContainerWidget):
             child_tuples.insert(0, (self._checkbox, str('value')))
             link(*child_tuples)
 
+    def display(self):
+        from IPython.display import display
+        display(self)
+        self.format()
+
     def format(self):
         self._toggle_container.set_css('padding', '3px')
         self.container.set_css('padding', '0px 0px 0px 30px')
