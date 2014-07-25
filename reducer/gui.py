@@ -603,6 +603,31 @@ class SliceWidget(ToggleContainerWidget):
         self._stop.set_css('width', '30px')
 
 
+class CalibrationStepWidget(ToggleContainerWidget):
+    """docstring for CalibrationStepWidget"""
+    def __init__(self, *args, **kwd):
+        super(CalibrationStepWidget, self).__init__(*args, **kwd)
+        self._source_dict = {'Created in this notebook': 'notebook',
+                             'File on disk': 'disk'}
+        self._settings = \
+            widgets.ContainerWidget(description="Reduction choices")
+
+        self._source = widgets.ToggleButtonsWidget(description='Source:',
+                                                   values=self._source_dict)
+        self._file_select = widgets.DropdownWidget(description="Select file:",
+                                                   values=["Not working yet"],
+                                                   visible=False)
+        self._settings.children = [self._source, self._file_select]
+        self.add_child(self._settings)
+        self._source.on_trait_change(self._file_select_visibility(),
+                                     str('value_name'))
+
+    def _file_select_visibility(self):
+        def file_visibility(name, value):
+            self._file_select.visible = self._source_dict[value] == 'disk'
+        return file_visibility
+
+
 class ReductionSettings(widgets.ContainerWidget):
     """docstring for ReductionSettings"""
     def __init__(self, *arg, **kwd):
