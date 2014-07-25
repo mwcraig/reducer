@@ -419,6 +419,11 @@ class ToggleContainerWidget(widgets.ContainerWidget):
 
     toggle : ToggleButtonWidget or CheckboxWidget
         The toggle object, provided primarily to allow styling of it.
+
+    action : callable or str
+        An action associated with the widget. Can be either a callable
+        (e.g. a function) or a string. This widget does *nothing* with
+        the action; it is provided as a hook for controller code.
     Notes
     -----
 
@@ -439,6 +444,7 @@ class ToggleContainerWidget(widgets.ContainerWidget):
         self._container = widgets.ContainerWidget(description="Toggle-able container")
         self.children = [self._toggle_container, self._container]
         self._container.on_trait_change(self._link_children, str('_children'))
+        self.action = None
 
     @property
     def container(self):
