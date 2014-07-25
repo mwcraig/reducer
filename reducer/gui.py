@@ -14,6 +14,28 @@ import msumastro
 
 from .notebook_dir import get_data_path
 
+__all__ = [
+    'LoadContainer',
+    'ImageSummary1',
+    'MakeMasterButtons',
+    'ReduceContainer',
+    'ImageDisplayStuff',
+    'ImageTreeWidget',
+    'FitsViewerWidget',
+    'ImageBrowserWidget',
+    'ToggleContainerWidget',
+    'ToggleMinMaxWidget',
+    'CombinerWidget',
+    'CosmicRaySettingsWidget',
+    'SliceWidget',
+    'OverscanWidget',
+    'CalibrationStepWidget',
+    'ReductionSettings',
+    'show_images',
+    'ndarray_to_png',
+    'set_color_for',
+]
+
 
 class LoadContainer(widgets.ContainerWidget):
     """docstring for LoadContainer"""
@@ -597,27 +619,6 @@ class CosmicRaySettingsWidget(ToggleContainerWidget):
 class SliceWidget(ToggleContainerWidget):
     def __init__(self, *arg, **kwd):
         super(SliceWidget, self).__init__(*arg, **kwd)
-        self._start = widgets.IntTextWidget(description='Start index:')
-        self._stop = widgets.IntTextWidget(description='Stop index (python-style):')
-        self._axis = widgets.RadioButtonsWidget(description='Overscan index:',
-                                                values=[0, 1])
-        self.add_child(self._start)
-        self.add_child(self._stop)
-        self.add_child(self._axis)
-
-    def format(self):
-        super(SliceWidget, self).format()
-        hbox_these = [self, self.container]
-        for hbox in hbox_these:
-            hbox.remove_class('vbox')
-            hbox.add_class('hbox')
-        self._start.set_css('width', '30px')
-        self._stop.set_css('width', '30px')
-
-
-class SliceTwoWidget(ToggleContainerWidget):
-    def __init__(self, *arg, **kwd):
-        super(SliceTwoWidget, self).__init__(*arg, **kwd)
         drop_desc = ('Region is along all of')
         self._axis_selection = widgets.ContainerWidget()
         self._pre = widgets.ToggleButtonsWidget(description=drop_desc,
@@ -635,7 +636,7 @@ class SliceTwoWidget(ToggleContainerWidget):
         #self.add_child(self._stop)
 
     def format(self):
-        super(SliceTwoWidget, self).format()
+        super(SliceWidget, self).format()
         hbox_these = [self._axis_selection]  # [self, self.container]
         for hbox in hbox_these:
             hbox.remove_class('vbox')
@@ -644,7 +645,7 @@ class SliceTwoWidget(ToggleContainerWidget):
         self._stop.set_css('width', '30px')
 
 
-class OverscanWidget(SliceTwoWidget):
+class OverscanWidget(SliceWidget):
     """docstring for OverscanWidget"""
     def __init__(self, *arg, **kwd):
         super(OverscanWidget, self).__init__(*arg, **kwd)
@@ -669,7 +670,14 @@ class OverscanWidget(SliceTwoWidget):
 
 
 class CalibrationStepWidget(ToggleContainerWidget):
-    """docstring for CalibrationStepWidget"""
+    """
+    Represents a calibration step that corresponds to a ccdproc command.
+
+    Parameters
+    ----------
+
+    None
+    """
     def __init__(self, *args, **kwd):
         super(CalibrationStepWidget, self).__init__(*args, **kwd)
         self._source_dict = {'Created in this notebook': 'notebook',
@@ -700,7 +708,7 @@ class ReductionSettings(widgets.ContainerWidget):
         allow_dark = kwd.pop('allow_dark', True)
         allow_bias = kwd.pop('allow_bias', True)
         super(ReductionSettings, self).__init__(*arg, **kwd)
-        self._overscan = SliceWidget(description='Subtract overscan?')
+        self._overscan = OverscanWidget(description='Subtract overscan?')
         self._trim = SliceWidget(description='Trim (specify region to keep)?')
         self._cosmic_ray = CosmicRaySettingsWidget()
         self._bias_calib = CalibrationStepWidget(description="Subtract bias?")
