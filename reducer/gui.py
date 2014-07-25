@@ -424,6 +424,7 @@ class ToggleContainerWidget(widgets.ContainerWidget):
         An action associated with the widget. Can be either a callable
         (e.g. a function) or a string. This widget does *nothing* with
         the action; it is provided as a hook for controller code.
+
     Notes
     -----
 
@@ -612,6 +613,59 @@ class SliceWidget(ToggleContainerWidget):
             hbox.add_class('hbox')
         self._start.set_css('width', '30px')
         self._stop.set_css('width', '30px')
+
+
+class SliceTwoWidget(ToggleContainerWidget):
+    def __init__(self, *arg, **kwd):
+        super(SliceTwoWidget, self).__init__(*arg, **kwd)
+        drop_desc = ('Region is along all of')
+        self._axis_selection = widgets.ContainerWidget()
+        self._pre = widgets.ToggleButtonsWidget(description=drop_desc,
+                                                values={"axis 0": 0,
+                                                        "axis 1": 1})
+        self._start = widgets.IntTextWidget(description='and on the other axis from index ')
+        self._stop = widgets.IntTextWidget(description='up to (but not including):')
+        self._axis_selection.children = [
+            self._pre,
+            self._start,
+            self._stop
+        ]
+        self.add_child(self._axis_selection)
+        #self.add_child(self._start)
+        #self.add_child(self._stop)
+
+    def format(self):
+        super(SliceTwoWidget, self).format()
+        hbox_these = [self._axis_selection]  # [self, self.container]
+        for hbox in hbox_these:
+            hbox.remove_class('vbox')
+            hbox.add_class('hbox')
+        self._start.set_css('width', '30px')
+        self._stop.set_css('width', '30px')
+
+
+class OverscanWidget(SliceTwoWidget):
+    """docstring for OverscanWidget"""
+    def __init__(self, *arg, **kwd):
+        super(OverscanWidget, self).__init__(*arg, **kwd)
+        poly_desc = "Fit polynomial to overscan?"
+        self._polyfit = ToggleContainerWidget(description=poly_desc)
+        poly_values = OrderedDict()
+        poly_values["Order 0/one term (constant)"] = 1
+        poly_values["Order 1/two term (linear)"] = 2
+        poly_values["Order 2/three team (quadratic)"] = 3
+        poly_values["Are you serious? Higher order is silly."] = None
+        poly_dropdown = widgets.DropdownWidget(description="Choose fit",
+                                               values=poly_values,
+                                               value=1)
+        self._polyfit.add_child(poly_dropdown)
+        self.add_child(self._polyfit)
+
+    def format(self):
+        super(OverscanWidget, self).format()
+        self._polyfit.format()
+        self._polyfit.remove_class('vbox')
+        self._polyfit.add_class('hbox')
 
 
 class CalibrationStepWidget(ToggleContainerWidget):
