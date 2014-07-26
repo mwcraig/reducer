@@ -20,7 +20,7 @@ You need python (2.7, or 3.4 or higher) and the `SciPy
 stack <http://scipy.org>`__. The easiest way to the get the full stack
 is from a distribution like `anaconda <http://continuum.io>`__.
 
-Then, in a teerminal/command window:
+Then, in a terminal/command window:
 
 ::
 
