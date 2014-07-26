@@ -707,6 +707,7 @@ class ReductionSettings(widgets.ContainerWidget):
     def display(self):
         from IPython.display import display
         display(self)
+        self.format()
 
     def format(self):
         for child in self.children:
