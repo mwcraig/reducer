@@ -16,8 +16,8 @@ class PyTest(TestCommand):
 
 ADD_THESE_BACK_TO_INSTALL_EVENTUALLY = ['ccdproc', 'photutils']
 
-INSTALL_REQUIRES = ['astropy>=0.3', 'numpy', 'scipy',
-                    'ipython>=2.0', 'msumastro']
+INSTALL_REQUIRES = ['astropy>=0.4', 'numpy', 'scipy',
+                    'ipython>=2.0', 'msumastro>=0.5']
 
 
 setup(
