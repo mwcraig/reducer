@@ -25,7 +25,7 @@ setup(
     version='0.1dev',
     description='Process FITS files',
     url='http://github.com/mwcraig/reducer',
-    long_description=(open('README.md').read()),
+    long_description=(open('README.rst').read()),
     license='BSD 3-clause',
     author='Matt Craig',
     author_email='mcraig@mnstate.edu',

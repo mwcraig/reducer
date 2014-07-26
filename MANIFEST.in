@@ -1,1 +1,2 @@
+README.rst
 recursive-include reducer *.ipynb *.csv *.png *.fit
