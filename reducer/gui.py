@@ -16,7 +16,6 @@ from .notebook_dir import get_data_path
 
 __all__ = [
     'LoadContainer',
-    'ImageSummary1',
     'MakeMasterButtons',
     'ReduceContainer',
     'ImageDisplayStuff',
@@ -80,28 +79,6 @@ class LoadContainer(widgets.ContainerWidget):
         self.load_progress.description = "Done!"
         self.load_progress.remove_class(["progress-striped", "active"])
         self.load_progress.add_class("progress-success")
-
-
-class ImageSummary1(object):
-    """docstring for ImageSummary1"""
-    def __init__(self):
-        super(ImageSummary1, self).__init__()
-        self.image_summary = widgets.TabWidget(description="Summary container")
-        image_types = ["Bias", "Dark", "Flat", "Light"]
-        image_type_buttons = [widgets.TextareaWidget(description=t,
-                                                     value="Nice long list of images")
-                              for t in image_types]
-        self.image_summary.children = image_type_buttons
-        #self.image_summary.on_trait_change(self.set_tab_callback(), name="visible")
-
-    def set_tab_names(self):
-        for index, tab in enumerate(self.image_summary.children):
-            self.image_summary.set_title(index, tab.description)
-
-    def set_tab_callback(self):
-        def tab_callback():
-            return self.set_tab_names
-        return tab_callback
 
 
 class MakeMasterButtons(widgets.ContainerWidget):
