@@ -455,6 +455,7 @@ class ToggleContainerWidget(widgets.ContainerWidget):
         ]
 
         self._link_children()
+        self._child_notify_parent_on_change(self.toggle)
         self.action = None
 
     @property
@@ -506,6 +507,15 @@ class ToggleContainerWidget(widgets.ContainerWidget):
         temp = list(self.container.children)
         temp.append(child)
         self.container.children = temp
+        self._child_notify_parent_on_change(child)
+
+    def _child_notify_parent_on_change(self, child):
+        child.on_trait_change(self._ping_handler(), str('value'))
+
+    def _ping_handler(self):
+        def flip_state():
+            self._state_monitor.value = not self._state_monitor.value
+        return flip_state
 
 
 class ToggleMinMaxWidget(ToggleContainerWidget):
