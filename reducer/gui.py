@@ -593,7 +593,7 @@ class CombinerWidget(ToggleContainerWidget):
     def is_sane(self):
         """
         Indicates whether the combination of selected settings is at least
-        minimally remotely.
+        remotely sane.
         """
         return self._combine_method.value != 'None'
 
