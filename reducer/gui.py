@@ -453,8 +453,8 @@ class ToggleContainerWidget(widgets.ContainerWidget):
             self._container,
             self._state_monitor
         ]
-        self._container.on_trait_change(self._link_children, str('_children'))
 
+        self._link_children()
         self.action = None
 
     @property
@@ -467,11 +467,7 @@ class ToggleContainerWidget(widgets.ContainerWidget):
 
     def _link_children(self):
         from IPython.utils.traitlets import link
-        child_tuples = [(child, str('visible')) for child
-                        in self._container.children]
-        if child_tuples:
-            child_tuples.insert(0, (self._checkbox, str('value')))
-            link(*child_tuples)
+        link((self._checkbox, str('value')), (self._container, str('visible')))
 
     @property
     def disabled(self):
