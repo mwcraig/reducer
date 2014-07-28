@@ -552,7 +552,8 @@ class CombinerWidget(ToggleContainerWidget):
             ToggleContainerWidget(description="Clip before combining?")
         min_max = ToggleMinMaxWidget(description="Clip by min/max?")
         sigma_clip = ToggleMinMaxWidget(description="Sigma clip?")
-        self._clipping_widget.container.children = [min_max, sigma_clip]
+        self._clipping_widget.add_child(min_max)
+        self._clipping_widget.add_child(sigma_clip)
         self._combine_method = \
             widgets.ToggleButtonsWidget(description="Combination method:",
                                         values=[
@@ -561,7 +562,8 @@ class CombinerWidget(ToggleContainerWidget):
                                             'Median'
                                         ])
 
-        self.container.children = [self._clipping_widget, self._combine_method]
+        self.add_child(self._clipping_widget)
+        self.add_child(self._combine_method)
         self.min_max = min_max
         self.sigma_clip = sigma_clip
         self._combine_method.on_trait_change(set_color_for(self), str('value'))
