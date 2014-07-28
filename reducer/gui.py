@@ -564,7 +564,6 @@ class CombinerWidget(ToggleContainerWidget):
         self.container.children = [self._clipping_widget, self._combine_method]
         self.min_max = min_max
         self.sigma_clip = sigma_clip
-        self.toggle.on_trait_change(set_color_for(self), str('value'))
         self._combine_method.on_trait_change(set_color_for(self), str('value'))
 
     def display(self):
