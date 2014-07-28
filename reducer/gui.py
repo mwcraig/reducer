@@ -523,7 +523,8 @@ class ToggleMinMaxWidget(ToggleContainerWidget):
         super(ToggleMinMaxWidget, self).__init__(*args, **kwd)
         min_box = widgets.FloatTextWidget(description="Low threshold")
         max_box = widgets.FloatTextWidget(description="High threshold")
-        self.container.children = [min_box, max_box]
+        self.add_child(min_box)
+        self.add_child(max_box)
 
     def format(self):
         super(ToggleMinMaxWidget, self).format()
