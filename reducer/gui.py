@@ -424,6 +424,10 @@ class ToggleContainerWidget(widgets.ContainerWidget):
         (e.g. a function) or a string. This widget does *nothing* with
         the action; it is provided as a hook for controller code.
 
+    disabled : bool
+        Gets and sets whether the entire widget is disabled, i.e. the toggle
+        box and all children of this widget controlled by the toggle.
+
     Notes
     -----
 
@@ -442,8 +446,15 @@ class ToggleContainerWidget(widgets.ContainerWidget):
         self._checkbox = toggle_types[toggle_type](description=self.description)
         self._toggle_container.children = [self._checkbox]
         self._container = widgets.ContainerWidget(description="Toggle-able container")
-        self.children = [self._toggle_container, self._container]
+        self._state_monitor = widgets.CheckboxWidget(visible=False)
+
+        self.children = [
+            self._toggle_container,
+            self._container,
+            self._state_monitor
+        ]
         self._container.on_trait_change(self._link_children, str('_children'))
+
         self.action = None
 
     @property
@@ -461,6 +472,18 @@ class ToggleContainerWidget(widgets.ContainerWidget):
         if child_tuples:
             child_tuples.insert(0, (self._checkbox, str('value')))
             link(*child_tuples)
+
+    @property
+    def disabled(self):
+        return self._state_monitor.disabled
+
+    @disabled.setter
+    def disabled(self, value):
+        # someday test for boolean in here....
+        self._state_monitor.disabled = value
+        self.toggle.disabled = value
+        for child in self.container.children:
+            child.disabled = value
 
     def display(self):
         from IPython.display import display
