@@ -536,7 +536,41 @@ class ToggleMinMaxWidget(ToggleContainerWidget):
             child.set_css('width', '30px')
 
 
-class CombinerWidget(ToggleContainerWidget):
+class ToggleGoWidget(ToggleContainerWidget):
+    """docstring for ToggleGoWidget"""
+    def __init__(self, *args, **kwd):
+        super(ToggleGoWidget, self).__init__(*args, **kwd)        
+        self.toggle.on_trait_change(set_color_for(self), str('value'))
+
+    def display(self):
+        """
+        Display, and then format, this widget.
+
+        Most IPython widget formatting must be done after the widget is
+        created.
+        """
+        from IPython.display import display
+        display(self)
+        self.format()
+
+    def format(self):
+        """
+        Format the widget; must be invoked after displaying the widget.
+        """
+        super(ToggleGoWidget, self).format()
+        for child in self.container.children:
+            try:
+                child.format()
+            except AttributeError:
+                pass
+        #self._clipping_widget.format()
+        self.container.set_css({'border': '1px grey solid', 'border-radius': '10px'})
+
+        self._toggle_container.set_css('width', '100%')
+        self._checkbox.set_css('width', '100%')
+
+
+class CombinerWidget(ToggleGoWidget):
     """
     Widget for displaying options for ccdproc.Combiner.
 
@@ -568,36 +602,19 @@ class CombinerWidget(ToggleContainerWidget):
         self.sigma_clip = sigma_clip
         self._combine_method.on_trait_change(set_color_for(self), str('value'))
 
-    def display(self):
-        """
-        Display, and then format, this widget.
-
-        Most IPython widget formatting must be done after the widget is
-        created.
-        """
-        from IPython.display import display
-        display(self)
-        self.format()
-
-    def format(self):
-        """
-        Format the widget; must be invoked after displaying the widget.
-        """
-        super(CombinerWidget, self).format()
-        self._clipping_widget.format()
-        self.container.set_css({'border': '1px grey solid', 'border-radius': '10px'})
-        self.min_max.format()
-        self.sigma_clip.format()
-        self._toggle_container.set_css('width', '100%')
-        self._checkbox.set_css('width', '100%')
-
     @property
     def is_sane(self):
         """
         Indicates whether the combination of selected settings is at least
         remotely sane.
         """
+        print("I am in sane")
         return self._combine_method.value != 'None'
+
+    def format(self):
+        super(CombinerWidget, self).format()
+        self.min_max.format()
+        self.sigma_clip.format()
 
     def __str__(self):
 
@@ -709,7 +726,7 @@ class CalibrationStepWidget(ToggleContainerWidget):
         return file_visibility
 
 
-class ReductionSettings(widgets.ContainerWidget):
+class ReductionSettings(ToggleGoWidget):
     """docstring for ReductionSettings"""
     def __init__(self, *arg, **kwd):
         allow_flat = kwd.pop('allow_flat', True)
@@ -722,27 +739,24 @@ class ReductionSettings(widgets.ContainerWidget):
         self._bias_calib = CalibrationStepWidget(description="Subtract bias?")
         self._dark_calib = CalibrationStepWidget(description="Subtract dark?")
         self._flat_calib = CalibrationStepWidget(description="Flat correct?")
-        children = [
-            self._overscan,
-            self._trim,
-            self._cosmic_ray
-        ]
+        self.add_child(self._overscan)
+        self.add_child(self._trim)
+        self.add_child(self._cosmic_ray)
+
         if allow_bias:
-            children.append(self._bias_calib)
+            self.add_child(self._bias_calib)
         if allow_dark:
-            children.append(self._dark_calib)
+            self.add_child(self._dark_calib)
         if allow_flat:
-            children.append(self._flat_calib)
-        self.children = children
+            self.add_child(self._flat_calib)
 
     def display(self):
         from IPython.display import display
         display(self)
         self.format()
 
-    def format(self):
-        for child in self.children:
-            child.format()
+    def is_sane(self):
+        return None
 
 
 def set_color_for(a_widget):
