@@ -543,8 +543,11 @@ class ToggleGoWidget(ToggleContainerWidget):
 
         super(ToggleGoWidget, self).__init__(*args, **kwd)
         self._go_container = widgets.ContainerWidget(visible=self.toggle.value)
-        self._go_button = widgets.ButtonWidget(description="Lock settings and Go!")
-        self._change_settings = widgets.ButtonWidget(description="Unlock settings")
+        self._go_button = widgets.ButtonWidget(description="Lock settings and Go!",
+                                               disabled=True)
+        self._change_settings = widgets.ButtonWidget(description="Unlock settings",
+                                                     disabled=True,
+                                                     visible=False)
         self._go_container.children = [self._go_button, self._change_settings]
         # we want the go button to be in a container below the
         #  ToggleContainer's container -- actually, no, want these
@@ -553,8 +556,15 @@ class ToggleGoWidget(ToggleContainerWidget):
         kids = list(self.children)
         kids.append(self._go_container)
         self.children = kids
+
+        # Tie visibility of go button to toggle state. Needs to be separate
+        # from the container.
         link((self._go_container, str('visible')), (self.toggle, str('value')))
+
+        self._go_button.on_click(self.go())
+        self._change_settings.on_click(self.unlock())
         self.toggle.on_trait_change(set_color_for(self), str('value'))
+        self._state_monitor.on_trait_change(self.state_change_handler(), str('value'))
 
     def display(self):
         """
@@ -602,6 +612,41 @@ class ToggleGoWidget(ToggleContainerWidget):
             overridden.
         """
         return None
+
+    def state_change_handler(self):
+        """
+        Ties sanity state to go button controls and others
+        """
+        def change_handler():
+            if self.is_sane is None:
+                pass
+
+            # Sorry about the double negative below, but the IPython widget
+            # method is named DISabled...
+            self._go_button.disabled = not self.is_sane
+
+        return change_handler
+
+    def go(self):
+        def handler(b):
+            """
+            b is the button pressed
+            """
+            self.disabled = True
+            # DO STUFF HERE!
+            import time; time.sleep(1)
+            # change button should really only appear after the work is done.
+            self._change_settings.visible = True
+            self._change_settings.disabled = False
+            self._go_button.disabled = True
+        return handler
+
+    def unlock(self):
+        def handler(b):
+            self.disabled = False
+            self._go_button.disabled = False
+            self._change_settings.visible = False
+        return handler
 
 
 class CombinerWidget(ToggleGoWidget):
