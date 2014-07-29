@@ -539,7 +539,7 @@ class ToggleMinMaxWidget(ToggleContainerWidget):
 class ToggleGoWidget(ToggleContainerWidget):
     """docstring for ToggleGoWidget"""
     def __init__(self, *args, **kwd):
-        super(ToggleGoWidget, self).__init__(*args, **kwd)        
+        super(ToggleGoWidget, self).__init__(*args, **kwd)
         self.toggle.on_trait_change(set_color_for(self), str('value'))
 
     def display(self):
@@ -615,14 +615,6 @@ class CombinerWidget(ToggleGoWidget):
         super(CombinerWidget, self).format()
         self.min_max.format()
         self.sigma_clip.format()
-
-    def __str__(self):
-
-        value = ('SOME DAY I WOULD PRINT SETTINGS SO\n'
-            '\tTHEY ARE EMBEDDED IN THE NOTEBOOK\n'
-            '\t\tPR WELCOME :) mwcraig/reducer'
-            )
-        return value
 
 
 class CosmicRaySettingsWidget(ToggleContainerWidget):
