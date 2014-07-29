@@ -539,7 +539,21 @@ class ToggleMinMaxWidget(ToggleContainerWidget):
 class ToggleGoWidget(ToggleContainerWidget):
     """docstring for ToggleGoWidget"""
     def __init__(self, *args, **kwd):
+        from IPython.utils.traitlets import link
+
         super(ToggleGoWidget, self).__init__(*args, **kwd)
+        self._go_container = widgets.ContainerWidget(visible=self.toggle.value)
+        self._go_button = widgets.ButtonWidget(description="Lock settings and Go!")
+        self._change_settings = widgets.ButtonWidget(description="Unlock settings")
+        self._go_container.children = [self._go_button, self._change_settings]
+        # we want the go button to be in a container below the
+        #  ToggleContainer's container -- actually, no, want these
+        # buttons controlled by toggle...wait, no, I really do want that, but
+        # I also want to tie their visibility to the toggle.
+        kids = list(self.children)
+        kids.append(self._go_container)
+        self.children = kids
+        link((self._go_container, str('visible')), (self.toggle, str('value')))
         self.toggle.on_trait_change(set_color_for(self), str('value'))
 
     def display(self):
@@ -564,10 +578,30 @@ class ToggleGoWidget(ToggleContainerWidget):
             except AttributeError:
                 pass
         #self._clipping_widget.format()
-        self.container.set_css({'border': '1px grey solid', 'border-radius': '10px'})
-
+        self.container.set_css({'border': '1px grey solid',
+                                'border-radius': '10px'})
         self._toggle_container.set_css('width', '100%')
         self._checkbox.set_css('width', '100%')
+        self._go_container.remove_class('vbox')
+        self._go_container.add_class('hbox')
+        self._go_container.set_css('padding', '5px')
+        self._go_container.set_css('width', '100%')
+        for child in self._go_container.children:
+            child.set_css('padding', '5px')
+
+    def is_sane(self):
+        """
+        Subclasses can define a method that indicates whether the
+        current combination of settings is sensible.
+
+        Returns
+        -------
+
+        sanity : bool or None
+            True if the settings are sensible, False if not, None if not
+            overridden.
+        """
+        return None
 
 
 class CombinerWidget(ToggleGoWidget):
@@ -746,9 +780,6 @@ class ReductionSettings(ToggleGoWidget):
         from IPython.display import display
         display(self)
         self.format()
-
-    def is_sane(self):
-        return None
 
 
 def set_color_for(a_widget):
