@@ -544,7 +544,7 @@ class ToggleGoWidget(ToggleContainerWidget):
         super(ToggleGoWidget, self).__init__(*args, **kwd)
         self._go_container = widgets.ContainerWidget(visible=self.toggle.value)
         self._go_button = widgets.ButtonWidget(description="Lock settings and Go!",
-                                               disabled=True)
+                                               disabled=True, visible=False)
         self._change_settings = widgets.ButtonWidget(description="Unlock settings",
                                                      disabled=True,
                                                      visible=False)
