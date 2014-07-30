@@ -709,7 +709,7 @@ class CosmicRaySettingsWidget(ToggleContainerWidget):
         super(CosmicRaySettingsWidget, self).__init__(*args, **kwd)
         cr_choices = widgets.DropdownWidget(
             description='Method:',
-            values={'median': set_color_for, 'LACosmic': set_color_for}
+            values={'median': None, 'LACosmic': None}
         )
         self.container.children = [cr_choices]
 
