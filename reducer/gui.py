@@ -596,9 +596,14 @@ class ToggleGoWidget(ToggleContainerWidget):
         self._go_container.add_class('hbox')
         self._go_container.set_css('padding', '5px')
         self._go_container.set_css('width', '100%')
+        self._go_button.add_class('box-flex1')
+        self._change_settings.add_class('box-flex3')
+        self._go_button.add_class('btn-info')
+        self._change_settings.add_class('btn-inverse')
         for child in self._go_container.children:
-            child.set_css('padding', '5px')
+            child.set_css('margin', '5px')
 
+    @property
     def is_sane(self):
         """
         Subclasses can define a method that indicates whether the
@@ -619,11 +624,12 @@ class ToggleGoWidget(ToggleContainerWidget):
         """
         def change_handler():
             if self.is_sane is None:
-                pass
+                return
 
             # Sorry about the double negative below, but the IPython widget
             # method is named DISabled...
             self._go_button.disabled = not self.is_sane
+            self._go_button.visible = self.is_sane
 
         return change_handler
 
@@ -825,6 +831,10 @@ class ReductionSettings(ToggleGoWidget):
         from IPython.display import display
         display(self)
         self.format()
+
+    @property
+    def is_sane(self):
+        return True
 
 
 def set_color_for(a_widget):
