@@ -1,11 +1,18 @@
-This "package" provides an ipython notebook for reducing and doing
+This package provides an ipython notebook for reducing and doing
 stellar photometry on CCD data.
 
-WARNING: THIS PACKAGE CURRENTLY DOES NO REDUCTION
-=================================================
+New to python? Start here
+=========================
 
-Right now the this package is purely cosmetic -- there is just enough
-pseudo-functionality to get some useful feedback on the interface.
+Getting started with python can be intimidating; if you have questions please
+`contact me <mailto:mcraig@mnstate.edu>`_!
+
+To actually run this tool you need to install the 
+`anaconda python distribution <http://continuum.io/downloads>`_. It will
+*not* interfere in any way with other python installations you have.
+
+Please provide feedback
+=======================
 
 Comments are very, very much welcome. Please comment by `making a new
 issue on Github <https://github.com/mwcraig/reducer/issues>`__ (if, by
@@ -35,23 +42,19 @@ Usage
 =====
 
 This package doesn't magically do your reduction for you. Instead, it
-creates a template `ipython notebook <http://ipython.org>`__ that leads
+creates a template `ipython notebook <http://ipython.org>`_ that leads
 you through data reduction and aperture photometry. When you are done
 you have reduced your data and *you have a notebook that allows you or
 someone else to reproduce your work*.
 
 In a terminal, navigate to the directory where you want to keep the
 notebook for doing your reduction (which does not have to be the same
-directory where the data is, though it can be), then type:
-
-::
+directory where the data is, though it can be), then type::
 
     reducer
 
 This will create a new template notebook. To open the notebook, type
-in a terminal:
-
-::
+in a terminal::
 
     ipython notebook
 
