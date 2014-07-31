@@ -12,4 +12,4 @@ Contents:
    :maxdepth: 2
 
    gui
-
+   controller
