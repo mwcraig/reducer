@@ -24,12 +24,6 @@ __all__ = [
     'ImageBrowserWidget',
     'ToggleContainerWidget',
     'ToggleMinMaxWidget',
-    'CombinerWidget',
-    'CosmicRaySettingsWidget',
-    'SliceWidget',
-    'OverscanWidget',
-    'CalibrationStepWidget',
-    'ReductionSettings',
     'show_images',
     'ndarray_to_png',
     'set_color_for',
@@ -535,6 +529,14 @@ class ToggleMinMaxWidget(ToggleContainerWidget):
         for child in self.container.children:
             child.set_css('width', '30px')
 
+    @property
+    def min(self):
+        return self.min_box.value
+
+    @property
+    def max(self):
+        return self.max_box.value
+
 
 class ToggleGoWidget(ToggleContainerWidget):
     """docstring for ToggleGoWidget"""
@@ -653,188 +655,6 @@ class ToggleGoWidget(ToggleContainerWidget):
             self._go_button.disabled = False
             self._change_settings.visible = False
         return handler
-
-
-class CombinerWidget(ToggleGoWidget):
-    """
-    Widget for displaying options for ccdproc.Combiner.
-
-    Parameters
-    ----------
-
-    description : str, optional
-        Text displayed next to check box for selecting options.
-    """
-    def __init__(self, *args, **kwd):
-        super(CombinerWidget, self).__init__(*args, **kwd)
-        self._clipping_widget = \
-            ToggleContainerWidget(description="Clip before combining?")
-        min_max = ToggleMinMaxWidget(description="Clip by min/max?")
-        sigma_clip = ToggleMinMaxWidget(description="Sigma clip?")
-        self._clipping_widget.add_child(min_max)
-        self._clipping_widget.add_child(sigma_clip)
-        self._combine_method = \
-            widgets.ToggleButtonsWidget(description="Combination method:",
-                                        values=[
-                                            'None',
-                                            'Average',
-                                            'Median'
-                                        ])
-
-        self.add_child(self._clipping_widget)
-        self.add_child(self._combine_method)
-        self.min_max = min_max
-        self.sigma_clip = sigma_clip
-        self._combine_method.on_trait_change(set_color_for(self), str('value'))
-
-    @property
-    def is_sane(self):
-        """
-        Indicates whether the combination of selected settings is at least
-        remotely sane.
-        """
-        print("I am in sane")
-        return self._combine_method.value != 'None'
-
-    def format(self):
-        super(CombinerWidget, self).format()
-        self.min_max.format()
-        self.sigma_clip.format()
-
-
-class CosmicRaySettingsWidget(ToggleContainerWidget):
-    def __init__(self, *args, **kwd):
-        descript = kwd.pop('description', 'Clean cosmic rays?')
-        kwd['description'] = descript
-        super(CosmicRaySettingsWidget, self).__init__(*args, **kwd)
-        cr_choices = widgets.DropdownWidget(
-            description='Method:',
-            values={'median': None, 'LACosmic': None}
-        )
-        self.container.children = [cr_choices]
-
-    def display(self):
-        from IPython.display import display
-        display(self)
-
-
-class SliceWidget(ToggleContainerWidget):
-    def __init__(self, *arg, **kwd):
-        super(SliceWidget, self).__init__(*arg, **kwd)
-        drop_desc = ('Region is along all of')
-        self._axis_selection = widgets.ContainerWidget()
-        self._pre = widgets.ToggleButtonsWidget(description=drop_desc,
-                                                values={"axis 0": 0,
-                                                        "axis 1": 1})
-        self._start = widgets.IntTextWidget(description='and on the other axis from index ')
-        self._stop = widgets.IntTextWidget(description='up to (but not including):')
-        self._axis_selection.children = [
-            self._pre,
-            self._start,
-            self._stop
-        ]
-        self.add_child(self._axis_selection)
-        #self.add_child(self._start)
-        #self.add_child(self._stop)
-
-    def format(self):
-        super(SliceWidget, self).format()
-        hbox_these = [self._axis_selection]  # [self, self.container]
-        for hbox in hbox_these:
-            hbox.remove_class('vbox')
-            hbox.add_class('hbox')
-        self._start.set_css('width', '30px')
-        self._stop.set_css('width', '30px')
-
-
-class OverscanWidget(SliceWidget):
-    """docstring for OverscanWidget"""
-    def __init__(self, *arg, **kwd):
-        super(OverscanWidget, self).__init__(*arg, **kwd)
-        poly_desc = "Fit polynomial to overscan?"
-        self._polyfit = ToggleContainerWidget(description=poly_desc)
-        poly_values = OrderedDict()
-        poly_values["Order 0/one term (constant)"] = 1
-        poly_values["Order 1/two term (linear)"] = 2
-        poly_values["Order 2/three team (quadratic)"] = 3
-        poly_values["Are you serious? Higher order is silly."] = None
-        poly_dropdown = widgets.DropdownWidget(description="Choose fit",
-                                               values=poly_values,
-                                               value=1)
-        self._polyfit.add_child(poly_dropdown)
-        self.add_child(self._polyfit)
-
-    def format(self):
-        super(OverscanWidget, self).format()
-        self._polyfit.format()
-        self._polyfit.remove_class('vbox')
-        self._polyfit.add_class('hbox')
-
-
-class CalibrationStepWidget(ToggleContainerWidget):
-    """
-    Represents a calibration step that corresponds to a ccdproc command.
-
-    Parameters
-    ----------
-
-    None
-    """
-    def __init__(self, *args, **kwd):
-        super(CalibrationStepWidget, self).__init__(*args, **kwd)
-        self._source_dict = {'Created in this notebook': 'notebook',
-                             'File on disk': 'disk'}
-        self._settings = \
-            widgets.ContainerWidget(description="Reduction choices")
-
-        self._source = widgets.ToggleButtonsWidget(description='Source:',
-                                                   values=self._source_dict)
-        self._file_select = widgets.DropdownWidget(description="Select file:",
-                                                   values=["Not working yet"],
-                                                   visible=False)
-        self._settings.children = [self._source, self._file_select]
-        self.add_child(self._settings)
-        self._source.on_trait_change(self._file_select_visibility(),
-                                     str('value_name'))
-
-    def _file_select_visibility(self):
-        def file_visibility(name, value):
-            self._file_select.visible = self._source_dict[value] == 'disk'
-        return file_visibility
-
-
-class ReductionSettings(ToggleGoWidget):
-    """docstring for ReductionSettings"""
-    def __init__(self, *arg, **kwd):
-        allow_flat = kwd.pop('allow_flat', True)
-        allow_dark = kwd.pop('allow_dark', True)
-        allow_bias = kwd.pop('allow_bias', True)
-        super(ReductionSettings, self).__init__(*arg, **kwd)
-        self._overscan = OverscanWidget(description='Subtract overscan?')
-        self._trim = SliceWidget(description='Trim (specify region to keep)?')
-        self._cosmic_ray = CosmicRaySettingsWidget()
-        self._bias_calib = CalibrationStepWidget(description="Subtract bias?")
-        self._dark_calib = CalibrationStepWidget(description="Subtract dark?")
-        self._flat_calib = CalibrationStepWidget(description="Flat correct?")
-        self.add_child(self._overscan)
-        self.add_child(self._trim)
-        self.add_child(self._cosmic_ray)
-
-        if allow_bias:
-            self.add_child(self._bias_calib)
-        if allow_dark:
-            self.add_child(self._dark_calib)
-        if allow_flat:
-            self.add_child(self._flat_calib)
-
-    def display(self):
-        from IPython.display import display
-        display(self)
-        self.format()
-
-    @property
-    def is_sane(self):
-        return True
 
 
 def set_color_for(a_widget):
