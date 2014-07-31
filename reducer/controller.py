@@ -15,6 +15,15 @@ import msumastro
 from .notebook_dir import get_data_path
 from . import gui
 
+__all__ = [
+    'ReductionSettings',
+    'CombinerWidget',
+    'CosmicRaySettingsWidget',
+    'SliceWidget',
+    'CalibrationStepWidget',
+    'OverscanWidget',
+]
+
 
 class ReductionSettings(gui.ToggleGoWidget):
     """docstring for ReductionSettings"""
