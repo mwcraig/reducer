@@ -504,7 +504,14 @@ class ToggleContainerWidget(widgets.ContainerWidget):
         self._child_notify_parent_on_change(child)
 
     def _child_notify_parent_on_change(self, child):
-        child.on_trait_change(self._ping_handler(), str('value'))
+        if str('value') in child.keys:
+            child.on_trait_change(self._ping_handler(), str('value'))
+
+        try:
+            for grandchild in child.children:
+                self._child_notify_parent_on_change(grandchild)
+        except AttributeError:
+            pass
 
     def _ping_handler(self):
         def flip_state():
