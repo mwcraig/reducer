@@ -156,7 +156,6 @@ class CombinerWidget(gui.ToggleGoWidget):
                                         high_thresh=self.sigma_clip.max)
 
 
-
 class CosmicRaySettingsWidget(gui.ToggleContainerWidget):
     def __init__(self, *args, **kwd):
         descript = kwd.pop('description', 'Clean cosmic rays?')
