@@ -521,20 +521,31 @@ class ToggleContainerWidget(widgets.ContainerWidget):
 
     def _child_notify_parent_on_change(self, child):
         # For some reason DropdownWidgets do not have a value key, only a
-        # value_name key. Seems wildly inconsistent with the rest of the
+        # value_name key. Seems inconsistent with the rest of the
         # widgets, but whatever...
-        if str('value') in child.keys or str('value_name') in child.keys:
-            child.on_trait_change(self._ping_handler(), str('value'))
 
-        try:
-            for grandchild in child.children:
-                self._child_notify_parent_on_change(grandchild)
-        except AttributeError:
-            pass
+        if isinstance(child, ToggleContainerWidget):
+            # If the child is a ToggleContainerWidget we only need to link in
+            # to its _state_monitor because it will take care hooking up the
+            # things in the container to its _state_monitor.
+            child._state_monitor.on_trait_change(self._ping_handler(),
+                                                 str('value'))
+        elif str('value') in child.traits():
+            # If the child has a value trait we want to monitor it.
+            child.on_trait_change(self._ping_handler(), str('value'))
+        else:
+            # Might be a plain ContainerWidget (or tab or accordion), so look
+            # for its children.
+            try:
+                for grandchild in child.children:
+                    self._child_notify_parent_on_change(grandchild)
+            except AttributeError:
+                pass
 
     def _ping_handler(self):
         def flip_state():
             self._state_monitor.value = not self._state_monitor.value
+
         return flip_state
 
 
