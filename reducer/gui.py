@@ -24,6 +24,7 @@ __all__ = [
     'ImageBrowserWidget',
     'ToggleContainerWidget',
     'ToggleMinMaxWidget',
+    'ToggleGoWidget',
     'show_images',
     'ndarray_to_png',
     'set_color_for',
