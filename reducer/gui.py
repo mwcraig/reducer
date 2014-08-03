@@ -520,7 +520,10 @@ class ToggleContainerWidget(widgets.ContainerWidget):
         self._child_notify_parent_on_change(child)
 
     def _child_notify_parent_on_change(self, child):
-        if str('value') in child.keys:
+        # For some reason DropdownWidgets do not have a value key, only a
+        # value_name key. Seems wildly inconsistent with the rest of the
+        # widgets, but whatever...
+        if str('value') in child.keys or str('value_name') in child.keys:
             child.on_trait_change(self._ping_handler(), str('value'))
 
         try:
