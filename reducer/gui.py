@@ -602,8 +602,11 @@ class ToggleGoWidget(ToggleContainerWidget):
 
         self._go_button.on_click(self.go())
         self._change_settings.on_click(self.unlock())
-        self.toggle.on_trait_change(set_color_for(self), str('value'))
-        self._state_monitor.on_trait_change(self.state_change_handler(), str('value'))
+
+        # Tie self._state_monitor to both go button and color of toggle button
+        self._state_monitor.on_trait_change(self.state_change_handler(),
+                                            str('value'))
+        self._state_monitor.on_trait_change(set_color_for(self), str('value'))
 
     def display(self):
         """
