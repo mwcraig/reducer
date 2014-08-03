@@ -204,6 +204,20 @@ class SliceWidget(gui.ToggleContainerWidget):
         self._start.set_css('width', '30px')
         self._stop.set_css('width', '30px')
 
+    @property
+    def is_sane(self):
+        """
+        Determine whether combination of settings is at least remotely
+        plausible.
+        """
+        # If the SliceWidget is not selected, return None
+        if not self.toggle.value:
+            return None
+        # Stop value must be larger than start (i.e. slice must contain at
+        # least one row/column).
+        sanity = self._stop.value > self._start.value
+        return sanity
+
 
 class CalibrationStepWidget(gui.ToggleContainerWidget):
     """
@@ -259,3 +273,18 @@ class OverscanWidget(SliceWidget):
         self._polyfit.format()
         self._polyfit.remove_class('vbox')
         self._polyfit.add_class('hbox')
+
+    @property
+    def is_sane(self):
+        # Am I even active? If not, return None
+        if not self.toggle.value:
+            return None
+
+        # See what the SliceWidget thinks....
+        sanity = super(OverscanWidget, self).is_sane
+        print(sanity)
+        if self._polyfit.toggle.value:
+            poly_dropdown = self._polyfit.container.children[0]
+            print(poly_dropdown.value)
+            sanity = sanity and (poly_dropdown.value is not None)
+        return sanity
