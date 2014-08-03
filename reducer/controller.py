@@ -54,7 +54,6 @@ class ReductionSettings(gui.ToggleGoWidget):
 
         self._state_monitor.on_trait_change(gui.set_color_for(self), str('value'))
 
-
     def display(self):
         from IPython.display import display
         display(self)
@@ -143,7 +142,6 @@ class CombinerWidget(gui.ToggleGoWidget):
         Indicates whether the combination of selected settings is at least
         remotely sane.
         """
-        #print("I am in sane")
         return self._combine_method.value != 'None'
 
     def format(self):
@@ -291,9 +289,7 @@ class OverscanWidget(SliceWidget):
 
         # See what the SliceWidget thinks....
         sanity = super(OverscanWidget, self).is_sane
-        print(sanity)
         if self._polyfit.toggle.value:
             poly_dropdown = self._polyfit.container.children[0]
-            print(poly_dropdown.value)
             sanity = sanity and (poly_dropdown.value is not None)
         return sanity
