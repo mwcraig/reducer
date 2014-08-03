@@ -59,14 +59,21 @@ class ReductionSettings(gui.ToggleGoWidget):
 
     @property
     def is_sane(self):
-        sanity = False
-        #print("Crap")
-        if self._overscan.toggle.value:
-            sanity = self._overscan._stop.value > self._overscan._start.value
-            #print("Crap2")
+        # There are two ways to be insane here:
+
+        # 1. No steps are selected
+        for child in self.container.children:
+            if child.toggle.value:
+                break
         else:
-            #print("Crap3")
-            sanity = True
+            # Reminder: this executes if the loop completes successfully,
+            # i.e. none of the children are selected
+            return False
+
+        # 2. There is a combination of settings that doesn't make sense.
+        mental_state = [child.is_sane for child in
+                        self.container.children if child.is_sane is not None]
+        sanity = all(mental_state)
         return sanity
 
     def _perform_reduction(self):
