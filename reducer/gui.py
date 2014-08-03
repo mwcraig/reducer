@@ -477,6 +477,21 @@ class ToggleContainerWidget(widgets.ContainerWidget):
         for child in self.container.children:
             child.disabled = value
 
+    @property
+    def is_sane(self):
+        """
+        Subclasses can define a method that indicates whether the
+        current combination of settings is sensible.
+
+        Returns
+        -------
+
+        sanity : bool or None
+            True if the settings are sensible, False if not, None if not
+            overridden.
+        """
+        return None
+
     def display(self):
         from IPython.display import display
         display(self)
@@ -612,21 +627,6 @@ class ToggleGoWidget(ToggleContainerWidget):
         self._change_settings.add_class('btn-inverse')
         for child in self._go_container.children:
             child.set_css('margin', '5px')
-
-    @property
-    def is_sane(self):
-        """
-        Subclasses can define a method that indicates whether the
-        current combination of settings is sensible.
-
-        Returns
-        -------
-
-        sanity : bool or None
-            True if the settings are sensible, False if not, None if not
-            overridden.
-        """
-        return None
 
     def state_change_handler(self):
         """
