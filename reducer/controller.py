@@ -52,6 +52,9 @@ class ReductionSettings(gui.ToggleGoWidget):
         if allow_flat:
             self.add_child(self._flat_calib)
 
+        self._state_monitor.on_trait_change(gui.set_color_for(self), str('value'))
+
+
     def display(self):
         from IPython.display import display
         display(self)
