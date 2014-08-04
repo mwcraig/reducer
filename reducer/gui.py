@@ -658,7 +658,12 @@ class ToggleMinMaxWidget(ToggleContainerWidget):
 
 
 class ToggleGoWidget(ToggleContainerWidget):
-    """docstring for ToggleGoWidget"""
+    """
+    ToggleContainerWidget whose state is linked to a button.
+
+    The intent is for that button to be activated when the contents
+    of the container are in a "sane" state.
+    """
     def __init__(self, *args, **kwd):
         from IPython.utils.traitlets import link
 
@@ -743,6 +748,9 @@ class ToggleGoWidget(ToggleContainerWidget):
         return change_handler
 
     def go(self):
+        """
+        Returns the action to be taken when the "Go" button is clicked.
+        """
         def handler(b):
             """
             b is the button pressed
@@ -757,6 +765,9 @@ class ToggleGoWidget(ToggleContainerWidget):
         return handler
 
     def unlock(self):
+        """
+        Handler for the unlock button.
+        """
         def handler(b):
             self.disabled = False
             self._go_button.disabled = False
