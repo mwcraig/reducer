@@ -507,18 +507,30 @@ class ToggleContainerWidget(widgets.ContainerWidget):
 
     @property
     def container(self):
+        """
+        Widget that contains the elements controlled by the toggle.
+        """
         return self._container
 
     @property
     def toggle(self):
+        """
+        Toggle widget that controls other display elements.
+        """
         return self._checkbox
 
     def _link_children(self):
+        """
+        Links the visible property of the container to the toggle value.
+        """
         from IPython.utils.traitlets import link
         link((self._checkbox, str('value')), (self._container, str('visible')))
 
     @property
     def disabled(self):
+        """
+        True if widget is disabled.
+        """
         return self._state_monitor.disabled
 
     @disabled.setter
@@ -554,11 +566,20 @@ class ToggleContainerWidget(widgets.ContainerWidget):
         return None
 
     def display(self):
+        """
+        Display and format this widget.
+        """
         from IPython.display import display
         display(self)
         self.format()
 
     def format(self):
+        """
+        Format widget.
+
+        Must be called after the widget is displayed, and is automatically
+        called by the `display` method.
+        """
         self._toggle_container.set_css('padding', '3px')
         self.container.set_css('padding', '0px 0px 0px 30px')
         #self.container.set_css('border', '1px red solid')
