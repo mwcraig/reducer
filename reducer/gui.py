@@ -119,7 +119,7 @@ def show_images(button):
 
 class ImageDisplayStuff(widgets.ContainerWidget):
     """
-    Widget to display a list of images with a slider
+    Widget to display a list of images with a slider.
 
     Parameters
     ----------
