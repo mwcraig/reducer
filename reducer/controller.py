@@ -174,7 +174,11 @@ class CombinerWidget(gui.ToggleGoWidget):
         Indicates whether the combination of selected settings is at least
         remotely sane.
         """
-        return self._combine_method.value != 'None'
+        sanity = self._combine_method.value != 'None'
+        if self._clipping_widget.is_sane is not None:
+            sanity = sanity and self._clipping_widget.is_sane
+
+        return sanity
 
     def format(self):
         super(CombinerWidget, self).format()
