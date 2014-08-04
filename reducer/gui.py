@@ -380,7 +380,15 @@ class FitsViewerWidget(object):
 
 
 class ImageBrowserWidget(widgets.ContainerWidget):
-    """docstring for ImageBrowserWidget"""
+    """
+    Browse a tree of FITS images and view image/header.
+
+    Parameters
+    ----------
+
+    tree : `msumastro.TableTree`
+        Tree of images, arranged by metadata.
+    """
     def __init__(self, tree, *args, **kwd):
         super(ImageBrowserWidget, self).__init__(*args, **kwd)
         self._tree_widget = ImageTreeWidget(tree)
@@ -392,18 +400,33 @@ class ImageBrowserWidget(widgets.ContainerWidget):
 
     @property
     def tree_widget(self):
+        """
+        Widget that represents the image tree.
+        """
         return self._tree_widget.top
 
     @property
     def fits_display(self):
+        """
+        Widget that displays FITS image/header.
+        """
         return self._fits_display.top
 
     def display(self):
+        """
+        Display and format this widget.
+        """
         from IPython.display import display
         display(self)
         self.format()
 
     def format(self):
+        """
+        Format widget.
+
+        Must be called after the widget is displayed, and is automatically
+        called by the `display` method.
+        """
         self.remove_class('vbox')
         self.add_class('hbox')
         self._tree_widget.format()
