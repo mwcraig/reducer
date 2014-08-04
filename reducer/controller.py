@@ -94,6 +94,47 @@ class ReductionSettings(gui.ToggleGoWidget):
                 print("trimming ", fname)
 
 
+class ClippingWidget(gui.ToggleContainerWidget):
+    """docstring for ClippingWidget"""
+    def __init__(self, *args, **kwd):
+        super(ClippingWidget, self).__init__(*args, **kwd)
+        self._min_max = gui.ToggleMinMaxWidget(description="Clip by min/max?")
+        self._sigma_clip = gui.ToggleMinMaxWidget(description="Sigma clip?")
+        self.add_child(self._min_max)
+        self.add_child(self._sigma_clip)
+
+    @property
+    def is_sane(self):
+        # If not selected, sanity state does not matter...
+        if not self.toggle.value:
+            return None
+
+        # It makes no sense to have selected clipping but not a clipping
+        # method....
+        sanity = (self._min_max.toggle.value or
+                  self._sigma_clip.toggle.value)
+
+        # For min_max clipping, maximum must be greater than minimum.
+        if self._min_max.toggle.value:
+            sanity = sanity and (self._min_max.max > self._min_max.min)
+
+        # For sigma clipping there is no relationship  between maximum
+        # and minimum because both are number of deviations above/below
+        # central value, but values of 0 make no sense
+
+        if self._sigma_clip.toggle.value:
+            sanity = (sanity and
+                      self._sigma_clip.min != 0 and
+                      self._sigma_clip.max != 0)
+
+        return sanity
+
+    def format(self):
+        super(ClippingWidget, self).format()
+        self._sigma_clip.format()
+        self._min_max.format()
+
+
 class CombinerWidget(gui.ToggleGoWidget):
     """
     Widget for displaying options for ccdproc.Combiner.
@@ -108,11 +149,7 @@ class CombinerWidget(gui.ToggleGoWidget):
         group_by_in = kwd.pop('group_by', None)
         super(CombinerWidget, self).__init__(*args, **kwd)
         self._clipping_widget = \
-            gui.ToggleContainerWidget(description="Clip before combining?")
-        min_max = gui.ToggleMinMaxWidget(description="Clip by min/max?")
-        sigma_clip = gui.ToggleMinMaxWidget(description="Sigma clip?")
-        self._clipping_widget.add_child(min_max)
-        self._clipping_widget.add_child(sigma_clip)
+            ClippingWidget(description="Clip before combining?")
         self._combine_method = \
             widgets.ToggleButtonsWidget(description="Combination method:",
                                         values=[
@@ -123,8 +160,7 @@ class CombinerWidget(gui.ToggleGoWidget):
 
         self.add_child(self._clipping_widget)
         self.add_child(self._combine_method)
-        self.min_max = min_max
-        self.sigma_clip = sigma_clip
+
         if group_by_in is not None:
             self._group_by = widgets.TextWidget(description='Group by:',
                                                 value=group_by_in)
@@ -142,8 +178,7 @@ class CombinerWidget(gui.ToggleGoWidget):
 
     def format(self):
         super(CombinerWidget, self).format()
-        self.min_max.format()
-        self.sigma_clip.format()
+        self._clipping_widget.format()
 
     def _perform_combination(self):
         if not self.images:
