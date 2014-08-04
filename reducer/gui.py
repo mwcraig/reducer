@@ -30,7 +30,15 @@ __all__ = [
 
 
 class LoadContainer(widgets.ContainerWidget):
-    """docstring for LoadContainer"""
+    """
+    Widget for loading a collection of FITS files
+
+    Parameters
+    ----------
+
+    data_dir : str
+        DIrectory in which the data is located.
+    """
     def __init__(self, *args, **kwd):
         data_directory = kwd.pop('data_dir', None)
         super(LoadContainer, self).__init__(*args, **kwd)
@@ -53,22 +61,34 @@ class LoadContainer(widgets.ContainerWidget):
                          self.status_label]
 
     def display(self):
+        """
+        Display and format this widget.
+        """
         from IPython.display import display
         display(self)
         self.format()
 
     def format(self):
+        """
+        Format widget. Must be called after the widget is displayed.
+        """
         self.remove_class('vbox')
         self.add_class('hbox')
         self.add_class('align-center')
 
     def start_progress(self):
+        """
+        Change state of progress bar to indicate beginning of operation.
+        """
         self.load_progress.visible = True
         self.load_progress.description = "Loading"
         self.load_progress.remove_class("progress-success")
         self.load_progress.add_class(["progress", "progress-striped", "active"])
 
     def end_progress(self):
+        """
+        Change state of progress bar to indicate end of operation.
+        """
         self.load_progress.description = "Done!"
         self.load_progress.remove_class(["progress-striped", "active"])
         self.load_progress.add_class("progress-success")
