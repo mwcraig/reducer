@@ -70,7 +70,10 @@ class LoadContainer(widgets.ContainerWidget):
 
     def format(self):
         """
-        Format widget. Must be called after the widget is displayed.
+        Format widget.
+
+        Must be called after the widget is displayed, and is automatically called
+        by the `display` method.
         """
         self.remove_class('vbox')
         self.add_class('hbox')
@@ -141,6 +144,15 @@ class ImageDisplayStuff(widgets.ContainerWidget):
 
 
 class ImageTreeWidget(object):
+    """
+    Create a tree view of a collection of images.
+
+    Parameters
+    ----------
+
+    tree : `msumastro.TableTree`
+        Tree of images, arranged by metadata.
+    """
     def __init__(self, tree):
         if not isinstance(tree, msumastro.TableTree):
             raise ValueError("argument must be a TableTree")
@@ -152,6 +164,9 @@ class ImageTreeWidget(object):
 
     @property
     def top(self):
+        """
+        Widget at the top of the tree.
+        """
         return self._top
 
     def _get_index_in_children(self, widget):
@@ -170,11 +185,14 @@ class ImageTreeWidget(object):
         parent : IPython widget
             String that identifies parent in gui
 
-        old : IPython.widget
+        old : IPython widget
             Child to be replaced
 
         new : IPython widget or None
             Replacement child (or None)
+
+        Notes
+        -----
 
         Children are stored as a tuple so they are immutable.
         """
@@ -185,6 +203,22 @@ class ImageTreeWidget(object):
         parent.children = current_children
 
     def _create_gui(self):
+        """
+        Create the tree gui elements.
+
+        Notes
+        -----
+
+        Each node of the tree is either an
+        `IPython.html.widgets.AccordionWidget`, if the node has child nodes,
+        or a `IPython.html.widgets.SelectWidget`, if the node has a list.
+
+        Note well this does **not** allow for the case of child nodes and
+        a list, so this does not really suffice as a file browser.
+
+        List nodes monkey with their parents by editing the description to
+        include the number of list items in the node.
+        """
         for parents, children, index in self._tree.walk():
             if children and index:
                 # This should be impossible...
@@ -229,11 +263,20 @@ class ImageTreeWidget(object):
                 self._replace_child(grandparent, old=old_parent, new=parent)
 
     def display(self):
+        """
+        Display and format this widget.
+        """
         from IPython.display import display
         display(self._top)
         self.format()
 
     def format(self):
+        """
+        Format widget.
+
+        Must be called after the widget is displayed, and is automatically
+        called by the `display` method.
+        """
         #self._top.set_css({'width': '50%'})
         for name, obj in self._gui_objects.iteritems():
             if isinstance(obj, widgets.AccordionWidget):
