@@ -16,8 +16,6 @@ from .notebook_dir import get_data_path
 
 __all__ = [
     'LoadContainer',
-    'MakeMasterButtons',
-    'ReduceContainer',
     'ImageDisplayStuff',
     'ImageTreeWidget',
     'FitsViewerWidget',
@@ -74,86 +72,6 @@ class LoadContainer(widgets.ContainerWidget):
         self.load_progress.description = "Done!"
         self.load_progress.remove_class(["progress-striped", "active"])
         self.load_progress.add_class("progress-success")
-
-
-class MakeMasterButtons(widgets.ContainerWidget):
-    """docstring for MakeMasterButtons"""
-    def __init__(self, calibration_types=None, bias=None):
-        super(MakeMasterButtons, self).__init__()
-        settings = {}
-        if bias is not None:
-            settings["Bias"] = bias
-        if calibration_types is None:
-            calibration_types = ["Bias", "Dark", "Flat"]
-        buttons = \
-            [widgets.ButtonWidget(description="Make Master {0}".format(c))
-             for c in calibration_types]
-        status_message = widgets.FloatProgressWidget(visible=False, min=0,
-                                                     max=1, value=1)
-        calib_container = widgets.ContainerWidget()
-        calib_container.children = buttons
-        for calib_name, button in zip(calibration_types, buttons):
-            button.parent = calib_container
-            button.on_click(self._change_my_color(settings=settings["Bias"]))
-        calib_container.parent = self
-        self.calib_container = calib_container
-        self.children = [calib_container, status_message]
-
-    def _change_my_color(self, settings=None):
-        def change_my_color(b):
-            status_message = self.children[1]
-            if settings is not None:
-                print(settings)
-            status_message.description = "Processing..."
-            status_message.remove_class("progress-success")
-            status_message.add_class(["progress", "progress-striped", "active"])
-            status_message.visible = True
-            import time; time.sleep(1)
-            status_message.description = "Done!"
-            status_message.remove_class(["progress-striped", "active"])
-            status_message.add_class("progress-success")
-            b.add_class('btn-success')
-            b.description = "Made " + b.description[5:]
-            time.sleep(2)
-            status_message.visible = False
-        return change_my_color
-
-    def display(self):
-        from IPython.display import display
-        display(self)
-        self.layout()
-
-    def layout(self):
-        self.calib_container.remove_class('vbox')
-        self.calib_container.add_class('hbox')
-        for button in self.calib_container.children:
-            button.add_class('btn-warning')
-            button.set_css('margin', '5px')
-
-
-class ReduceContainer(widgets.ContainerWidget):
-    """docstring for ReduceContainer"""
-    def __init__(self):
-        super(ReduceContainer, self).__init__()
-        reduce_button = widgets.ButtonWidget(description="Reduce my data!")
-        reduce_button.on_click(self._reduce_data())
-        self.children = [reduce_button]
-
-    def _reduce_data(self):
-        def reduce_data(b):
-            import time
-            original_description = b.description
-            b.description = "Just kidding"
-            time.sleep(1)
-            b.description = original_description
-        return reduce_data
-
-    def display(self):
-        from IPython.display import display
-        display(self)
-        self.set_css({'width': '60%'})
-        button = self.children[0]
-        button.add_class("btn-block")
 
 
 def show_images(button):
