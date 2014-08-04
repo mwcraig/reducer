@@ -307,7 +307,11 @@ def ndarray_to_png(x):
 
 
 class FitsViewerWidget(object):
+    """
+    Display the image and header from a single FITS file.
 
+
+    """
     def __init__(self):
         self._top = widgets.TabWidget(visible=False)
         self._data = None  # hdu.data
@@ -322,18 +326,44 @@ class FitsViewerWidget(object):
         return self._top
 
     def display(self):
+        """
+        Display and format this widget.
+        """
         from IPython.display import display
         display(self._top)
         self.format()
 
     def format(self):
+        """
+        Format widget.
+
+        Must be called after the widget is displayed, and is automatically
+        called by the `display` method.
+        """
         self._top.set_title(0, 'Image')
         self._top.set_title(1, 'Header')
         self._top.set_css('width', '100%')
         self._header_display.set_css('width', '50%')
 
-    def _set_fits_file_callback(self):
+    def set_fits_file_callback(self):
+        """
+        Returns a callback function that sets the name of FITS file to
+        display and updates the widget.
+
+        The callback takes one argument, the name of the fits file, or 'demo'
+        to enable the display of a couple of sample images.
+        """
         def set_fits_file(name, fits_file):
+            """
+            Set image and header to a particular FITS file.
+
+            Parameters
+            ----------
+
+            fits_file : str
+                The name of the fits file, or 'demo' to enable the display of
+                a couple of sample images.
+            """
             import random
             place_holder_files = ['flood-flat-001R.fit', 'SA112-SF1-001R1.fit']
             use_file = random.choice(place_holder_files)
@@ -382,7 +412,7 @@ class ImageBrowserWidget(widgets.ContainerWidget):
 
     def _add_handler(self, node):
         if isinstance(node, widgets.SelectWidget):
-            node.on_trait_change(self._fits_display._set_fits_file_callback(),
+            node.on_trait_change(self._fits_display.set_fits_file_callback(),
                                  str('value'))
             return
         if hasattr(node, 'children'):
