@@ -632,6 +632,16 @@ class ToggleContainerWidget(widgets.ContainerWidget):
 
 
 class ToggleMinMaxWidget(ToggleContainerWidget):
+    """
+    Widget for setting a minimum and maximum integer value, controlled by
+    a toggle.
+
+    Parameters
+    ----------
+
+    description : str
+        Text to be displayed in the toggle.
+    """
     def __init__(self, *args, **kwd):
         super(ToggleMinMaxWidget, self).__init__(*args, **kwd)
         self._min_box = widgets.FloatTextWidget(description="Low threshold")
@@ -650,10 +660,16 @@ class ToggleMinMaxWidget(ToggleContainerWidget):
 
     @property
     def min(self):
+        """
+        Minimum value in the widget.
+        """
         return self._min_box.value
 
     @property
     def max(self):
+        """
+        Maximum value in the widget.
+        """
         return self._max_box.value
 
 
