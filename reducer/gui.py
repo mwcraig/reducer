@@ -95,6 +95,15 @@ class LoadContainer(widgets.ContainerWidget):
 
 
 def show_images(button):
+    """
+    Do a quick and dirty plot of an image.
+
+    Parameters
+    ----------
+
+    button : `IPython.html.widgets.ButtonWidget`
+        Button whose click generated this call.
+    """
     images = button.parent.image_list
     num = len(images)
 
@@ -106,7 +115,16 @@ def show_images(button):
 
 
 class ImageDisplayStuff(widgets.ContainerWidget):
-    """docstring for ImageDisplayStuff"""
+    """
+    Widget to display a list of images with a slider
+
+    Parameters
+    ----------
+
+    image_list : list
+        Images to be shown, as numpy arrays (or anything that can be
+        display with `matplotlilb.plt.imshow`)
+    """
     def __init__(self, image_list=None):
         super(ImageDisplayStuff, self).__init__()
         if image_list is None:
