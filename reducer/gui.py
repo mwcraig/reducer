@@ -471,11 +471,20 @@ class ToggleContainerWidget(widgets.ContainerWidget):
 
     @disabled.setter
     def disabled(self, value):
+        # Not every widget has a disabled attribute (e.g. ContainerWidget),
+        # but we can go down through children recursively if needed.
+        def set_disabled(child, value):
+            if hasattr(child, 'disabled'):
+                child.disabled = value
+            elif hasattr(child, 'children'):
+                for grandkid in child.children:
+                    set_disabled(grandkid, value)
+
         # someday test for boolean in here....
         self._state_monitor.disabled = value
         self.toggle.disabled = value
         for child in self.container.children:
-            child.disabled = value
+            set_disabled(child, value)
 
     @property
     def is_sane(self):
