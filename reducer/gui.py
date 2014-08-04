@@ -552,10 +552,10 @@ class ToggleContainerWidget(widgets.ContainerWidget):
 class ToggleMinMaxWidget(ToggleContainerWidget):
     def __init__(self, *args, **kwd):
         super(ToggleMinMaxWidget, self).__init__(*args, **kwd)
-        min_box = widgets.FloatTextWidget(description="Low threshold")
-        max_box = widgets.FloatTextWidget(description="High threshold")
-        self.add_child(min_box)
-        self.add_child(max_box)
+        self._min_box = widgets.FloatTextWidget(description="Low threshold")
+        self._max_box = widgets.FloatTextWidget(description="High threshold")
+        self.add_child(self._min_box)
+        self.add_child(self._max_box)
 
     def format(self):
         super(ToggleMinMaxWidget, self).format()
@@ -568,11 +568,11 @@ class ToggleMinMaxWidget(ToggleContainerWidget):
 
     @property
     def min(self):
-        return self.min_box.value
+        return self._min_box.value
 
     @property
     def max(self):
-        return self.max_box.value
+        return self._max_box.value
 
 
 class ToggleGoWidget(ToggleContainerWidget):
