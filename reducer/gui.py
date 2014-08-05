@@ -344,7 +344,7 @@ class FitsViewerWidget(object):
         self._top.set_title(1, 'Header')
         self._header_display.set_css('height', '300px')
 
-    def set_fits_file_callback(self):
+    def set_fits_file_callback(self, demo=True):
         """
         Returns a callback function that sets the name of FITS file to
         display and updates the widget.
@@ -363,10 +363,14 @@ class FitsViewerWidget(object):
                 The name of the fits file, or 'demo' to enable the display of
                 a couple of sample images.
             """
-            import random
-            place_holder_files = ['flood-flat-001R.fit', 'SA112-SF1-001R1.fit']
-            use_file = random.choice(place_holder_files)
-            full_path = os.path.join(get_data_path(), use_file)
+            if demo:
+                import random
+                place_holder_files = ['flood-flat-001R.fit',
+                                      'SA112-SF1-001R1.fit']
+                use_file = random.choice(place_holder_files)
+                full_path = os.path.join(get_data_path(), use_file)
+            else:
+                full_path = fits_file
             with fits.open(full_path) as hdulist:
                 hdu = hdulist[0]
                 self._data = hdu.data
