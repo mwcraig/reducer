@@ -342,8 +342,7 @@ class FitsViewerWidget(object):
         """
         self._top.set_title(0, 'Image')
         self._top.set_title(1, 'Header')
-        self._top.set_css('width', '100%')
-        self._header_display.set_css('width', '50%')
+        self._header_display.set_css('height', '300px')
 
     def set_fits_file_callback(self):
         """
@@ -429,9 +428,13 @@ class ImageBrowserWidget(widgets.ContainerWidget):
         """
         self.remove_class('vbox')
         self.add_class('hbox')
+        self.set_css('width', '100%')
         self._tree_widget.format()
         self._fits_display.format()
-        self.tree_widget.set_css('width', '40%')
+        self.tree_widget.add_class('box-flex1')
+        self.fits_display.add_class('box-flex2')
+        for child in self.children:
+            child.set_css('margin', '10px')
 
     def _add_handler(self, node):
         if isinstance(node, widgets.SelectWidget):
