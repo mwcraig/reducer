@@ -350,7 +350,7 @@ class FitsViewerWidget(object):
         self._top.set_title(1, 'Header')
         self._header_display.set_css('height', '300px')
 
-    def set_fits_file_callback(self, demo=True):
+    def set_fits_file_callback(self, demo=True, image_dir=None):
         """
         Returns a callback function that sets the name of FITS file to
         display and updates the widget.
@@ -376,7 +376,10 @@ class FitsViewerWidget(object):
                 use_file = random.choice(place_holder_files)
                 full_path = os.path.join(get_data_path(), use_file)
             else:
-                full_path = fits_file
+                if image_dir is not None:
+                    full_path = os.path.join(image_dir, fits_file)
+                else:
+                    full_path = fits_file
             with fits.open(full_path) as hdulist:
                 hdu = hdulist[0]
                 self._data = hdu.data
@@ -399,6 +402,8 @@ class ImageBrowserWidget(widgets.ContainerWidget):
         Tree of images, arranged by metadata.
     """
     def __init__(self, tree, *args, **kwd):
+        self._directory = kwd.pop('directory', '.')
+        self._demo = kwd.pop('demo', True)
         super(ImageBrowserWidget, self).__init__(*args, **kwd)
         self._tree_widget = ImageTreeWidget(tree)
         self._fits_display = FitsViewerWidget()
@@ -448,8 +453,10 @@ class ImageBrowserWidget(widgets.ContainerWidget):
 
     def _add_handler(self, node):
         if isinstance(node, widgets.SelectWidget):
-            node.on_trait_change(self._fits_display.set_fits_file_callback(),
-                                 str('value'))
+            node.on_trait_change(
+                self._fits_display.set_fits_file_callback(demo=self._demo,
+                                                          image_dir=self._directory),
+                str('value'))
             return
         if hasattr(node, 'children'):
             for child in node.children:
