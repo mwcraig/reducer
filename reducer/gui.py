@@ -78,6 +78,9 @@ class LoadContainer(widgets.ContainerWidget):
         self.remove_class('vbox')
         self.add_class('hbox')
         self.add_class('align-center')
+        self.set_css('width', '100%')
+        self.button.add_class('btn-info')
+        self.button.set_css('width', '50%')
 
     def start_progress(self):
         """
@@ -87,6 +90,8 @@ class LoadContainer(widgets.ContainerWidget):
         self.load_progress.description = "Loading"
         self.load_progress.remove_class("progress-success")
         self.load_progress.add_class(["progress", "progress-striped", "active"])
+        self.button.disabled = True
+        self.button.set_css('width', '25%')
 
     def end_progress(self):
         """
@@ -95,6 +100,7 @@ class LoadContainer(widgets.ContainerWidget):
         self.load_progress.description = "Done!"
         self.load_progress.remove_class(["progress-striped", "active"])
         self.load_progress.add_class("progress-success")
+        self.button.disabled = False
 
 
 def show_images(button):
