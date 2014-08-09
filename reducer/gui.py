@@ -792,12 +792,12 @@ class ToggleGoWidget(ToggleContainerWidget):
             b is the button pressed
             """
             self.disabled = True
+            self._go_button.disabled = True
             # DO STUFF HERE!
             import time; time.sleep(1)
             # change button should really only appear after the work is done.
             self._change_settings.visible = True
             self._change_settings.disabled = False
-            self._go_button.disabled = True
         return handler
 
     def unlock(self):
