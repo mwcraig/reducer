@@ -4,15 +4,9 @@ from __future__ import (division, print_function, absolute_import,
 from collections import OrderedDict
 
 from IPython.html import widgets
-import matplotlib.pyplot as plt
-import numpy as np
 
-from astropy.io import fits
 import ccdproc
 
-import msumastro
-
-from .notebook_dir import get_data_path
 from . import gui
 
 __all__ = [
