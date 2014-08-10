@@ -217,7 +217,7 @@ class CombinerWidget(gui.ToggleGoWidget):
         self._combined = combined
 
     @property
-    def keys(self):
+    def image_groups(self):
         if self._group_by is None:
             return []
 
