@@ -29,12 +29,12 @@ class ReductionSettings(gui.ToggleGoWidget):
         allow_bias = kwd.pop('allow_bias', True)
         self.image_collection = kwd.pop('image_collection', None)
         self.apply_to = kwd.pop('apply_to', None)
+        self.bias_im = kwd.pop('bias_image', None)
         super(ReductionSettings, self).__init__(*arg, **kwd)
         self._overscan = OverscanWidget(description='Subtract overscan?')
         self._trim = TrimWidget(description='Trim (specify region to keep)?')
         self._cosmic_ray = CosmicRaySettingsWidget()
-        self._bias_calib = CalibrationStepWidget(description="Subtract bias?")
-        self._bias_calib.action = ccdproc.subtract_bias
+        self._bias_calib = BiasSubtractWidget(bias_image=self.bias_im)
         self._dark_calib = CalibrationStepWidget(description="Subtract dark?")
         self._flat_calib = CalibrationStepWidget(description="Flat correct?")
         self.add_child(self._overscan)
@@ -71,6 +71,13 @@ class ReductionSettings(gui.ToggleGoWidget):
                         self.container.children if child.is_sane is not None]
         sanity = all(mental_state)
         return sanity
+
+    @property
+    def reduced_images(self):
+        """
+        List of reduced images; each image is a `ccdproc.CCDData`` object.
+        """
+        return self._reduced_images
 
     def action(self):
         if not self.image_collection:
@@ -209,6 +216,11 @@ class CombinerWidget(gui.ToggleGoWidget):
         combined.header = self.images[0].header
         self._combined = combined
 
+    @property
+    def keys(self):
+        if self._group_by is None:
+            return []
+
 
 class CosmicRaySettingsWidget(gui.ToggleContainerWidget):
     def __init__(self, *args, **kwd):
@@ -302,6 +314,22 @@ class CalibrationStepWidget(gui.ToggleContainerWidget):
         def file_visibility(name, value):
             self._file_select.visible = self._source_dict[value] == 'disk'
         return file_visibility
+
+
+class BiasSubtractWidget(CalibrationStepWidget):
+    """
+    Subtract bias from an image using widget settings.
+    """
+    def __init__(self, bias_image=None, **kwd):
+        desc = kwd.pop('description', 'Subtract bias?')
+        kwd['description'] = desc
+        super(BiasSubtractWidget, self).__init__(**kwd)
+        self.master_bias = bias_image
+
+    def action(self, ccd):
+        if not self.master_bias:
+            raise ValueError("Need to provide a master bias frame")
+        return ccdproc.subtract_bias(ccd, self.master_bias)
 
 
 class OverscanWidget(SliceWidget):
