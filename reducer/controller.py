@@ -11,7 +11,7 @@ import ccdproc
 from . import gui
 
 __all__ = [
-    'ReductionSettings',
+    'ReductionWidget',
     'CombinerWidget',
     'CosmicRaySettingsWidget',
     'SliceWidget',
@@ -21,8 +21,8 @@ __all__ = [
 ]
 
 
-class ReductionSettings(gui.ToggleGoWidget):
-    """docstring for ReductionSettings"""
+class ReductionWidget(gui.ToggleGoWidget):
+    """docstring for ReductionWidget"""
     def __init__(self, *arg, **kwd):
         allow_flat = kwd.pop('allow_flat', True)
         allow_dark = kwd.pop('allow_dark', True)
@@ -30,7 +30,7 @@ class ReductionSettings(gui.ToggleGoWidget):
         self.image_collection = kwd.pop('image_collection', None)
         self.apply_to = kwd.pop('apply_to', None)
         self.bias_im = kwd.pop('bias_image', None)
-        super(ReductionSettings, self).__init__(*arg, **kwd)
+        super(ReductionWidget, self).__init__(*arg, **kwd)
         self._overscan = OverscanWidget(description='Subtract overscan?')
         self._trim = TrimWidget(description='Trim (specify region to keep)?')
         self._cosmic_ray = CosmicRaySettingsWidget()
