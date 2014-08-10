@@ -5,6 +5,7 @@ from collections import OrderedDict
 
 from IPython.html import widgets
 
+from astropy.modeling import models
 import ccdproc
 
 from . import gui
@@ -16,6 +17,7 @@ __all__ = [
     'SliceWidget',
     'CalibrationStepWidget',
     'OverscanWidget',
+    'TrimWidget'
 ]
 
 
@@ -29,7 +31,7 @@ class ReductionSettings(gui.ToggleGoWidget):
         self.apply_to = kwd.pop('apply_to', None)
         super(ReductionSettings, self).__init__(*arg, **kwd)
         self._overscan = OverscanWidget(description='Subtract overscan?')
-        self._trim = SliceWidget(description='Trim (specify region to keep)?')
+        self._trim = TrimWidget(description='Trim (specify region to keep)?')
         self._cosmic_ray = CosmicRaySettingsWidget()
         self._bias_calib = CalibrationStepWidget(description="Subtract bias?")
         self._bias_calib.action = ccdproc.subtract_bias
@@ -77,15 +79,13 @@ class ReductionSettings(gui.ToggleGoWidget):
         for hdu, fname in self.image_collection.hdus(return_fname=True,
                                                      **self.apply_to):
             ccd = ccdproc.CCDData(data=hdu.data, meta=hdu.header, unit="adu")
-            if self._overscan.toggle.value:
-                oscan0 = slice(None, None)
-                oscan1 = slice(self._overscan._start.value,
-                               self._overscan._stop.value)
-                print("subtracting overscan for ", fname)
-                reduced = ccdproc.subtract_overscan(ccd,
-                                                    overscan=ccd[oscan0, oscan1])
-            if self._trim.toggle.value:
-                print("trimming ", fname)
+            for child in self.container.children:
+                if not child.toggle.value:
+                    # Nothing to do for this child, so keep going.
+                    continue
+                ccd = child.action(ccd)
+            reduced_images.append(ccd)
+        self._reduced_images = reduced_images
 
 
 class ClippingWidget(gui.ToggleContainerWidget):
@@ -162,6 +162,15 @@ class CombinerWidget(gui.ToggleGoWidget):
         else:
             self._group_by = None
 
+        self._combined = None
+
+    @property
+    def combined(self):
+        """
+        The combined image.
+        """
+        return self._combined
+
     @property
     def is_sane(self):
         """
@@ -178,19 +187,27 @@ class CombinerWidget(gui.ToggleGoWidget):
         super(CombinerWidget, self).format()
         self._clipping_widget.format()
 
-    def _perform_combination(self):
+    def action(self):
         if not self.images:
             raise ValueError("No images provided to act on")
         if self._group_by:
             pass
         combiner = ccdproc.Combiner(self.images)
-        if self._clipping_widget.value:
+        if self._clipping_widget.toggle.value:
             if self.min_max.value:
                 combiner.minmax_clipping(min_clip=self.min_max.min,
                                          max_clip=self.min_max.max)
             if self.sigma_clip.value:
                 combiner.sigma_clipping(low_thresh=self.sigma_clip.min,
                                         high_thresh=self.sigma_clip.max)
+        if self._combine_method.value == 'Average':
+            print("Averaging")
+            combined = combiner.average_combine()
+        elif self._combine_method.value == 'Median':
+            print("Median-ing")
+            combined = combiner.median_combine()
+        combined.header = self.images[0].header
+        self._combined = combined
 
 
 class CosmicRaySettingsWidget(gui.ToggleContainerWidget):
@@ -322,3 +339,77 @@ class OverscanWidget(SliceWidget):
             poly_dropdown = self._polyfit.container.children[0]
             sanity = sanity and (poly_dropdown.value is not None)
         return sanity
+
+    @property
+    def polynomial_order(self):
+        # yuck
+        return self._polyfit.container.children[0].value
+
+    def action(self, ccd):
+        """
+        Subtract overscan from image based on settings.
+
+        Parameters
+        ----------
+
+        ccd : `ccdproc.CCDData`
+            Image to be reduced.
+        """
+        if not self.toggle.value:
+            pass
+
+        whole_axis = slice(None, None)
+        partial_axis = slice(self._start.value, self._stop.value)
+        # create a two-element list which will be filled with the appropriate
+        # slice based on the widget settings.
+        if self._pre.value == 0:
+            first_axis = whole_axis
+            second_axis = partial_axis
+            oscan_axis = 1
+        else:
+            first_axis = partial_axis
+            second_axis = whole_axis
+            oscan_axis = 0
+
+        if self._polyfit.toggle.value:
+            poly_model = models.Polynomial1D(self.polynomial_order)
+        else:
+            poly_model = None
+
+        reduced = ccdproc.subtract_overscan(ccd,
+                                            overscan=ccd[first_axis, second_axis],
+                                            overscan_axis=oscan_axis,
+                                            model=poly_model)
+        return reduced
+
+
+class TrimWidget(SliceWidget):
+    """
+    Controls and action for trimming a widget.
+    """
+    def __init__(self, *arg, **kwd):
+        super(TrimWidget, self).__init__(*arg, **kwd)
+
+    def action(self, ccd):
+        """
+        Trim an image to bounds given in the widget.
+
+        Returns
+        -------
+
+        trimmed : `ccdproc.CCDData`
+            Trimmed image.
+        """
+        # Don't do anything if not activated
+        if not self.toggle.value:
+            pass
+        whole_axis = slice(None, None)
+        partial_axis = slice(self._start.value, self._stop.value)
+        # create a two-element list which will be filled with the appropriate
+        # slice based on the widget settings.
+        if self._pre.value == 0:
+            trimmed = ccdproc.trim_image(ccd[whole_axis, partial_axis])
+        else:
+            trimmed = ccdproc.trim_image(ccd[partial_axis, whole_axis])
+
+        return trimmed
