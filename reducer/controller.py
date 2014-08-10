@@ -27,7 +27,7 @@ class ReductionWidget(gui.ToggleGoWidget):
         allow_flat = kwd.pop('allow_flat', True)
         allow_dark = kwd.pop('allow_dark', True)
         allow_bias = kwd.pop('allow_bias', True)
-        self.image_collection = kwd.pop('image_collection', None)
+        self.image_collection = kwd.pop('input_image_collection', None)
         self.apply_to = kwd.pop('apply_to', None)
         self.bias_im = kwd.pop('bias_image', None)
         super(ReductionWidget, self).__init__(*arg, **kwd)
