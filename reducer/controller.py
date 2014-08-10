@@ -46,6 +46,8 @@ class ReductionSettings(gui.ToggleGoWidget):
         if allow_flat:
             self.add_child(self._flat_calib)
 
+        self.action = self._perform_reduction
+
     def display(self):
         from IPython.display import display
         display(self)

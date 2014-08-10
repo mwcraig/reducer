@@ -794,7 +794,11 @@ class ToggleGoWidget(ToggleContainerWidget):
             self.disabled = True
             self._go_button.disabled = True
             # DO STUFF HERE!
-            import time; time.sleep(1)
+            if self.action:
+                self.action()
+            else:
+                # look busy even if there is nothing to do....
+                import time; time.sleep(1)
             # change button should really only appear after the work is done.
             self._change_settings.visible = True
             self._change_settings.disabled = False
