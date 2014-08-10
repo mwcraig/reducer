@@ -486,11 +486,6 @@ class ToggleContainerWidget(widgets.ContainerWidget):
     toggle : ToggleButtonWidget or CheckboxWidget
         The toggle object, provided primarily to allow styling of it.
 
-    action : callable or str
-        An action associated with the widget. Can be either a callable
-        (e.g. a function) or a string. This widget does *nothing* with
-        the action; it is provided as a hook for controller code.
-
     disabled : bool
         Gets and sets whether the entire widget is disabled, i.e. the toggle
         box and all children of this widget controlled by the toggle.
@@ -523,7 +518,6 @@ class ToggleContainerWidget(widgets.ContainerWidget):
 
         self._link_children()
         self._child_notify_parent_on_change(self.toggle)
-        self.action = None
 
     @property
     def container(self):
@@ -620,6 +614,13 @@ class ToggleContainerWidget(widgets.ContainerWidget):
         temp.append(child)
         self.container.children = temp
         self._child_notify_parent_on_change(child)
+
+    def action(self):
+        """
+        Subclasses should override this method if they wish to associate an
+        action with the widget.
+        """
+        pass
 
     def _child_notify_parent_on_change(self, child):
         # For some reason DropdownWidgets do not have a value key, only a
@@ -793,12 +794,8 @@ class ToggleGoWidget(ToggleContainerWidget):
             """
             self.disabled = True
             self._go_button.disabled = True
-            # DO STUFF HERE!
-            if self.action:
-                self.action()
-            else:
-                # look busy even if there is nothing to do....
-                import time; time.sleep(1)
+            self.action()
+
             # change button should really only appear after the work is done.
             self._change_settings.visible = True
             self._change_settings.disabled = False

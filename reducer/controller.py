@@ -46,8 +46,6 @@ class ReductionSettings(gui.ToggleGoWidget):
         if allow_flat:
             self.add_child(self._flat_calib)
 
-        self.action = self._perform_reduction
-
     def display(self):
         from IPython.display import display
         display(self)
@@ -72,7 +70,7 @@ class ReductionSettings(gui.ToggleGoWidget):
         sanity = all(mental_state)
         return sanity
 
-    def _perform_reduction(self):
+    def action(self):
         if not self.image_collection:
             raise ValueError("No images to reduce")
         reduced_images = []
