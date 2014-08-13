@@ -148,6 +148,36 @@ class ClippingWidget(gui.ToggleContainerWidget):
         self._min_max.format()
 
 
+class CombineWidget(gui.ToggleContainerWidget):
+    """
+    Represent combine choices and actions.
+    """
+    def __init__(self, *args, **kwd):
+        super(CombineWidget, self).__init__(*args, **kwd)
+        self._combine_option = \
+            widgets.ToggleButtonsWidget(values=['Average', 'Median'])
+        self.add_child(self._combine_option)
+
+    @property
+    def method(self):
+        return self._combine_option.value
+
+    @property
+    def is_sane(self):
+        if not self.toggle.value:
+            return None
+        else:
+            # In this case, the only options presented are sane ones
+            return True
+
+    def format(self):
+        super(CombineWidget, self).format()
+        hbox_these = [self, self.container]
+        for hbox in hbox_these:
+            hbox.remove_class('vbox')
+            hbox.add_class('hbox')
+
+
 class CombinerWidget(gui.ToggleGoWidget):
     """
     Widget for displaying options for ccdproc.Combiner.
@@ -167,12 +197,7 @@ class CombinerWidget(gui.ToggleGoWidget):
         self._clipping_widget = \
             ClippingWidget(description="Clip before combining?")
         self._combine_method = \
-            widgets.ToggleButtonsWidget(description="Combination method:",
-                                        values=[
-                                            'None',
-                                            'Average',
-                                            'Median'
-                                        ])
+            CombineWidget(description="Combine images?")
 
         self.add_child(self._clipping_widget)
         self.add_child(self._combine_method)
@@ -207,14 +232,26 @@ class CombinerWidget(gui.ToggleGoWidget):
 
     @property
     def is_sane(self):
-        """
-        Indicates whether the combination of selected settings is at least
-        remotely sane.
-        """
-        sanity = self._combine_method.value != 'None'
-        if self._clipping_widget.is_sane is not None:
-            sanity = sanity and self._clipping_widget.is_sane
+        # There are two ways to be insane here:
 
+        # 1. No steps are selected
+        for child in self.container.children:
+            try:
+                if child.toggle.value:
+                    break
+            except AttributeError:
+                # The child isn't a toggle, apparently...
+                pass
+        else:
+            # Reminder: this executes if the loop completes successfully,
+            # i.e. none of the children are selected
+            return False
+
+        # 2. There is a combination of settings that doesn't make sense.
+        mental_state = [child.is_sane for child in
+                        self.container.children if
+                        hasattr(child, 'is_sane') and child.is_sane is not None]
+        sanity = all(mental_state)
         return sanity
 
     def format(self):
@@ -277,10 +314,10 @@ class CombinerWidget(gui.ToggleGoWidget):
             if self.sigma_clip.value:
                 combiner.sigma_clipping(low_thresh=self.sigma_clip.min,
                                         high_thresh=self.sigma_clip.max)
-        if self._combine_method.value == 'Average':
+        if self._combine_method.method == 'Average':
             print("Averaging")
             combined = combiner.average_combine()
-        elif self._combine_method.value == 'Median':
+        elif self._combine_method.method == 'Median':
             print("Median-ing")
             combined = combiner.median_combine()
         combined.header = images[0].header
