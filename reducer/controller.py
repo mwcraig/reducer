@@ -2,10 +2,12 @@ from __future__ import (division, print_function, absolute_import,
                         unicode_literals)
 
 from collections import OrderedDict
+import os
 
 from IPython.html import widgets
 
 from astropy.modeling import models
+from astropy.io import fits
 import ccdproc
 
 from . import gui
@@ -29,12 +31,13 @@ class ReductionWidget(gui.ToggleGoWidget):
         allow_bias = kwd.pop('allow_bias', True)
         self.image_collection = kwd.pop('input_image_collection', None)
         self.apply_to = kwd.pop('apply_to', None)
-        self.bias_im = kwd.pop('bias_image', None)
+        self._master_source = kwd.pop('master_source', None)
+        self._destination = kwd.pop('destination', None)
         super(ReductionWidget, self).__init__(*arg, **kwd)
         self._overscan = OverscanWidget(description='Subtract overscan?')
         self._trim = TrimWidget(description='Trim (specify region to keep)?')
         self._cosmic_ray = CosmicRaySettingsWidget()
-        self._bias_calib = BiasSubtractWidget(bias_image=self.bias_im)
+        self._bias_calib = BiasSubtractWidget(master_source=self._master_source)
         self._dark_calib = CalibrationStepWidget(description="Subtract dark?")
         self._flat_calib = CalibrationStepWidget(description="Flat correct?")
         self.add_child(self._overscan)
@@ -79,11 +82,16 @@ class ReductionWidget(gui.ToggleGoWidget):
         """
         return self._reduced_images
 
+    @property
+    def destination(self):
+        return self._destination
+
     def action(self):
         if not self.image_collection:
             raise ValueError("No images to reduce")
         reduced_images = []
         for hdu, fname in self.image_collection.hdus(return_fname=True,
+                                                     save_location=self.destination,
                                                      **self.apply_to):
             ccd = ccdproc.CCDData(data=hdu.data, meta=hdu.header, unit="adu")
             for child in self.container.children:
@@ -91,6 +99,10 @@ class ReductionWidget(gui.ToggleGoWidget):
                     # Nothing to do for this child, so keep going.
                     continue
                 ccd = child.action(ccd)
+            hdu_tmp = ccd.to_hdu()[0]
+            print(ccd.shape)
+            hdu.header = hdu_tmp.header
+            hdu.data = hdu_tmp.data
             reduced_images.append(ccd)
         self._reduced_images = reduced_images
 
@@ -148,6 +160,9 @@ class CombinerWidget(gui.ToggleGoWidget):
     """
     def __init__(self, *args, **kwd):
         group_by_in = kwd.pop('group_by', None)
+        self._image_source = kwd.pop('image_source', None)
+        self._apply_to = kwd.pop('apply_to', None)
+        self._destination = kwd.pop('destination', None)
         super(CombinerWidget, self).__init__(*args, **kwd)
         self._clipping_widget = \
             ClippingWidget(description="Clip before combining?")
@@ -179,6 +194,18 @@ class CombinerWidget(gui.ToggleGoWidget):
         return self._combined
 
     @property
+    def apply_to(self):
+        return self._apply_to
+
+    @property
+    def image_source(self):
+        return self._image_source
+
+    @property
+    def destination(self):
+        return self._destination
+
+    @property
     def is_sane(self):
         """
         Indicates whether the combination of selected settings is at least
@@ -195,11 +222,54 @@ class CombinerWidget(gui.ToggleGoWidget):
         self._clipping_widget.format()
 
     def action(self):
-        if not self.images:
-            raise ValueError("No images provided to act on")
+        from copy import deepcopy
         if self._group_by:
-            pass
-        combiner = ccdproc.Combiner(self.images)
+            keywords = self._group_by.value.split(',')
+            # Yuck...need to use an internal method to get the mask I need.
+            tmp_coll = deepcopy(self.image_source)
+            tmp_coll._find_keywords_by_values(**self.apply_to)
+            mask = tmp_coll.summary_info['file'].mask
+            # Note the logical not below; mask indicates which values
+            # should be EXCLUDED.
+            filtered_table = tmp_coll.summary_info[~mask]
+            grouped_table = filtered_table.group_by(keywords)
+            combine_groups = grouped_table.groups.keys
+            colnames = combine_groups.colnames
+        else:
+            # OMG this is an ugly hack. Basically, make a fake combine_groups
+            # with one fake element, could use anything. Make a
+            # colnames, which is an empty list, to prevent creation of a dict
+            # below.
+            combine_groups = ["fake"]
+            colnames = []
+
+        print(combine_groups)
+        print(type(combine_groups))
+        for row in combine_groups:
+            d = {}
+            for c in colnames:
+                d[c] = row[c]
+            print(d)
+            combined = self._action_for_one_group(d)
+            fname = ['_'.join([str(k), str(v)]) for k, v in d.iteritems()]
+            fname = 'master_bias_' + '_'.join(fname) + '.fit'
+            print(fname)
+            dest_path = os.path.join(self.destination, fname)
+            combined.write(dest_path)
+            self._combined = combined
+
+    def _action_for_one_group(self, filter_dict=None):
+        combined_dict = self.apply_to.copy()
+        if filter_dict is not None:
+            combined_dict.update(filter_dict)
+
+        images = []
+
+        for hdu in self.image_source.hdus(**combined_dict):
+            images.append(ccdproc.CCDData(data=hdu.data,
+                                          meta=hdu.header,
+                                          unit="adu"))
+        combiner = ccdproc.Combiner(images)
         if self._clipping_widget.toggle.value:
             if self.min_max.value:
                 combiner.minmax_clipping(min_clip=self.min_max.min,
@@ -213,8 +283,9 @@ class CombinerWidget(gui.ToggleGoWidget):
         elif self._combine_method.value == 'Median':
             print("Median-ing")
             combined = combiner.median_combine()
-        combined.header = self.images[0].header
-        self._combined = combined
+        combined.header = images[0].header
+        combined.header['master'] = True
+        return combined
 
     @property
     def image_groups(self):
@@ -294,6 +365,7 @@ class CalibrationStepWidget(gui.ToggleContainerWidget):
     None
     """
     def __init__(self, *args, **kwd):
+        self._master_source = kwd.pop('master_source', None)
         super(CalibrationStepWidget, self).__init__(*args, **kwd)
         self._source_dict = {'Created in this notebook': 'notebook',
                              'File on disk': 'disk'}
@@ -314,6 +386,20 @@ class CalibrationStepWidget(gui.ToggleContainerWidget):
         def file_visibility(name, value):
             self._file_select.visible = self._source_dict[value] == 'disk'
         return file_visibility
+
+    def _master_image(self, **selector):
+        """
+        Identify appropriate master and return as `ccdproc.CCDData`.
+        """
+        if not self._master_source:
+            raise RuntimeError("No source provided for master.")
+        file_name = self._master_source.files_filtered(master=True,
+                                                       **selector)
+        if len(file_name) != 1:
+            raise RuntimeError("Well, crap. Should only be one master.")
+        file_name = file_name[0]
+        path = os.path.join(self._master_source.location, file_name)
+        return ccdproc.CCDData.read(path, unit="adu")
 
 
 class BiasSubtractWidget(CalibrationStepWidget):
