@@ -324,12 +324,30 @@ class BiasSubtractWidget(CalibrationStepWidget):
         desc = kwd.pop('description', 'Subtract bias?')
         kwd['description'] = desc
         super(BiasSubtractWidget, self).__init__(**kwd)
-        self.master_bias = bias_image
+        if self._master_source:
+            self.master_bias = self._master_image(**{'imagetyp': 'bias'})
+        else:
+            self.master_bias = None
 
     def action(self, ccd):
-        if not self.master_bias:
-            raise ValueError("Need to provide a master bias frame")
         return ccdproc.subtract_bias(ccd, self.master_bias)
+
+
+class DarkSubtractWidget(CalibrationStepWidget):
+    """
+    Subtract dark from an image using widget settings.
+    """
+    def __init__(self, bias_image=None, **kwd):
+        desc = kwd.pop('description', 'Subtract Dark?')
+        kwd['description'] = desc
+        super(DarkSubtractWidget, self).__init__(**kwd)
+        if self._master_source:
+            self.master = self._master_image(**{'imagetyp': 'dark'})
+        else:
+            self.master = None
+
+    def action(self, ccd):
+        return ccdproc.subtract_dark(ccd, self.master)
 
 
 class OverscanWidget(SliceWidget):
