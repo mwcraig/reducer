@@ -181,6 +181,31 @@ class GroupByWidget(gui.ToggleContainerWidget):
     def value(self):
         return self._keyword_list.value
 
+    def groups(self, apply_to):
+        if not (self.toggle.value and self.value):
+            # Return an empty dictionary by default if there is no grouping
+            return [{}]
+
+        # remember, the rest is really an else to the above...
+        from copy import deepcopy
+        keywords = self.value.split(',')
+        # Yuck...need to use an internal method to get the mask I need.
+        tmp_coll = deepcopy(self._image_source)
+        tmp_coll._find_keywords_by_values(**apply_to)
+        mask = tmp_coll.summary_info['file'].mask
+        # Note the logical not below; mask indicates which values
+        # should be EXCLUDED.
+        filtered_table = tmp_coll.summary_info[~mask]
+        grouped_table = filtered_table.group_by(keywords)
+        combine_groups = grouped_table.groups.keys
+        group_list = []
+        for row in combine_groups:
+            d = {c: row[c] for c in combine_groups.colnames}
+            group_list.append(d)
+
+        print(group_list)
+        return group_list
+
 
 class CombinerWidget(ReducerBase):
     """
@@ -205,7 +230,8 @@ class CombinerWidget(ReducerBase):
         self.add_child(self._combine_method)
 
         self._group_by = GroupByWidget(description='Group by:',
-                                       value=group_by_in)
+                                       value=group_by_in,
+                                       image_source=self._image_source)
         self.add_child(self._group_by)
 
         self._combined = None
@@ -236,36 +262,9 @@ class CombinerWidget(ReducerBase):
         self._clipping_widget.format()
 
     def action(self):
-        from copy import deepcopy
-        if self._group_by.toggle.value:
-            keywords = self._group_by.value.split(',')
-            # Yuck...need to use an internal method to get the mask I need.
-            tmp_coll = deepcopy(self.image_source)
-            tmp_coll._find_keywords_by_values(**self.apply_to)
-            mask = tmp_coll.summary_info['file'].mask
-            # Note the logical not below; mask indicates which values
-            # should be EXCLUDED.
-            filtered_table = tmp_coll.summary_info[~mask]
-            grouped_table = filtered_table.group_by(keywords)
-            combine_groups = grouped_table.groups.keys
-            colnames = combine_groups.colnames
-        else:
-            # OMG this is an ugly hack. Basically, make a fake combine_groups
-            # with one fake element, could use anything. Make a
-            # colnames, which is an empty list, to prevent creation of a dict
-            # below.
-            combine_groups = ["fake"]
-            colnames = []
-
-        print(combine_groups)
-        print(type(combine_groups))
-        for row in combine_groups:
-            d = {}
-            for c in colnames:
-                d[c] = row[c]
-            print(d)
-            combined = self._action_for_one_group(d)
-            fname = ['_'.join([str(k), str(v)]) for k, v in d.iteritems()]
+        for combo_group in self._group_by.groups(self.apply_to):
+            combined = self._action_for_one_group(combo_group)
+            fname = ['_'.join([str(k), str(v)]) for k, v in combo_group.iteritems()]
             fname = 'master_bias_' + '_'.join(fname) + '.fit'
             print(fname)
             dest_path = os.path.join(self.destination, fname)
@@ -300,11 +299,6 @@ class CombinerWidget(ReducerBase):
         combined.header = images[0].header
         combined.header['master'] = True
         return combined
-
-    @property
-    def image_groups(self):
-        if self._group_by is None:
-            return []
 
 
 class CosmicRaySettingsWidget(gui.ToggleContainerWidget):
