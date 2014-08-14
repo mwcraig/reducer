@@ -23,16 +23,33 @@ __all__ = [
 ]
 
 
-class ReductionWidget(gui.ToggleGoWidget):
+class ReducerBase(gui.ToggleGoWidget):
+    """
+    Base class for reduction and combination widgets that provides a couple
+    of properties common to both.
+    """
+    def __init__(self, *arg, **kwd):
+        self._apply_to = kwd.pop('apply_to', None)
+        self._destination = kwd.pop('destination', None)
+        super(ReducerBase, self).__init__(*arg, **kwd)
+
+    @property
+    def destination(self):
+        return self._destination
+
+    @property
+    def apply_to(self):
+        return self._apply_to
+
+
+class ReductionWidget(ReducerBase):
     """docstring for ReductionWidget"""
     def __init__(self, *arg, **kwd):
         allow_flat = kwd.pop('allow_flat', True)
         allow_dark = kwd.pop('allow_dark', True)
         allow_bias = kwd.pop('allow_bias', True)
         self.image_collection = kwd.pop('input_image_collection', None)
-        self.apply_to = kwd.pop('apply_to', None)
         self._master_source = kwd.pop('master_source', None)
-        self._destination = kwd.pop('destination', None)
         super(ReductionWidget, self).__init__(*arg, **kwd)
         self._overscan = OverscanWidget(description='Subtract overscan?')
         self._trim = TrimWidget(description='Trim (specify region to keep)?')
@@ -57,10 +74,6 @@ class ReductionWidget(gui.ToggleGoWidget):
         List of reduced images; each image is a `ccdproc.CCDData`` object.
         """
         return self._reduced_images
-
-    @property
-    def destination(self):
-        return self._destination
 
     def action(self):
         if not self.image_collection:
@@ -154,7 +167,7 @@ class CombineWidget(gui.ToggleContainerWidget):
             hbox.add_class('hbox')
 
 
-class CombinerWidget(gui.ToggleGoWidget):
+class CombinerWidget(ReducerBase):
     """
     Widget for displaying options for ccdproc.Combiner.
 
@@ -167,8 +180,6 @@ class CombinerWidget(gui.ToggleGoWidget):
     def __init__(self, *args, **kwd):
         group_by_in = kwd.pop('group_by', None)
         self._image_source = kwd.pop('image_source', None)
-        self._apply_to = kwd.pop('apply_to', None)
-        self._destination = kwd.pop('destination', None)
         super(CombinerWidget, self).__init__(*args, **kwd)
         self._clipping_widget = \
             ClippingWidget(description="Clip before combining?")
@@ -195,16 +206,8 @@ class CombinerWidget(gui.ToggleGoWidget):
         return self._combined
 
     @property
-    def apply_to(self):
-        return self._apply_to
-
-    @property
     def image_source(self):
         return self._image_source
-
-    @property
-    def destination(self):
-        return self._destination
 
     def format(self):
         super(CombinerWidget, self).format()
