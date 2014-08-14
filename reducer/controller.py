@@ -167,6 +167,21 @@ class CombineWidget(gui.ToggleContainerWidget):
             hbox.add_class('hbox')
 
 
+class GroupByWidget(gui.ToggleContainerWidget):
+    def __init__(self, *args, **kwd):
+        self._image_source = kwd.pop('image_source', None)
+        input_value = kwd.pop('value', '')
+        super(GroupByWidget, self).__init__(*args, **kwd)
+        self._keyword_list = widgets.TextWidget(value=input_value)
+        self.add_child(self._keyword_list)
+        if input_value:
+            self.toggle.value = True
+
+    @property
+    def value(self):
+        return self._keyword_list.value
+
+
 class CombinerWidget(ReducerBase):
     """
     Widget for displaying options for ccdproc.Combiner.
@@ -178,7 +193,7 @@ class CombinerWidget(ReducerBase):
         Text displayed next to check box for selecting options.
     """
     def __init__(self, *args, **kwd):
-        group_by_in = kwd.pop('group_by', None)
+        group_by_in = kwd.pop('group_by', '')
         self._image_source = kwd.pop('image_source', None)
         super(CombinerWidget, self).__init__(*args, **kwd)
         self._clipping_widget = \
@@ -189,12 +204,9 @@ class CombinerWidget(ReducerBase):
         self.add_child(self._clipping_widget)
         self.add_child(self._combine_method)
 
-        if group_by_in is not None:
-            self._group_by = widgets.TextWidget(description='Group by:',
-                                                value=group_by_in)
-            self.add_child(self._group_by)
-        else:
-            self._group_by = None
+        self._group_by = GroupByWidget(description='Group by:',
+                                       value=group_by_in)
+        self.add_child(self._group_by)
 
         self._combined = None
 
@@ -209,13 +221,23 @@ class CombinerWidget(ReducerBase):
     def image_source(self):
         return self._image_source
 
+    @property
+    def is_sane(self):
+        # Start with the default sanity determination...
+        sanity = super(CombinerWidget, self).is_sane
+        # ...but flip to insane if neither clipping nor combination is
+        # selected.
+        sanity = sanity and (self._clipping_widget.toggle.value
+                             or self._combine_method.toggle.value)
+        return sanity
+
     def format(self):
         super(CombinerWidget, self).format()
         self._clipping_widget.format()
 
     def action(self):
         from copy import deepcopy
-        if self._group_by:
+        if self._group_by.toggle.value:
             keywords = self._group_by.value.split(',')
             # Yuck...need to use an internal method to get the mask I need.
             tmp_coll = deepcopy(self.image_source)
