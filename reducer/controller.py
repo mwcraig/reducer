@@ -51,11 +51,6 @@ class ReductionWidget(gui.ToggleGoWidget):
         if allow_flat:
             self.add_child(self._flat_calib)
 
-    def display(self):
-        from IPython.display import display
-        display(self)
-        self.format()
-
     @property
     def is_sane(self):
         # There are two ways to be insane here:
