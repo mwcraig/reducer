@@ -38,7 +38,7 @@ class ReductionWidget(gui.ToggleGoWidget):
         self._trim = TrimWidget(description='Trim (specify region to keep)?')
         self._cosmic_ray = CosmicRaySettingsWidget()
         self._bias_calib = BiasSubtractWidget(master_source=self._master_source)
-        self._dark_calib = CalibrationStepWidget(description="Subtract dark?")
+        self._dark_calib = DarkSubtractWidget(description="Subtract dark?")
         self._flat_calib = CalibrationStepWidget(description="Flat correct?")
         self.add_child(self._overscan)
         self.add_child(self._trim)
