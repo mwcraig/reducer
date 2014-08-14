@@ -52,25 +52,6 @@ class ReductionWidget(gui.ToggleGoWidget):
             self.add_child(self._flat_calib)
 
     @property
-    def is_sane(self):
-        # There are two ways to be insane here:
-
-        # 1. No steps are selected
-        for child in self.container.children:
-            if child.toggle.value:
-                break
-        else:
-            # Reminder: this executes if the loop completes successfully,
-            # i.e. none of the children are selected
-            return False
-
-        # 2. There is a combination of settings that doesn't make sense.
-        mental_state = [child.is_sane for child in
-                        self.container.children if child.is_sane is not None]
-        sanity = all(mental_state)
-        return sanity
-
-    @property
     def reduced_images(self):
         """
         List of reduced images; each image is a `ccdproc.CCDData`` object.
@@ -224,30 +205,6 @@ class CombinerWidget(gui.ToggleGoWidget):
     @property
     def destination(self):
         return self._destination
-
-    @property
-    def is_sane(self):
-        # There are two ways to be insane here:
-
-        # 1. No steps are selected
-        for child in self.container.children:
-            try:
-                if child.toggle.value:
-                    break
-            except AttributeError:
-                # The child isn't a toggle, apparently...
-                pass
-        else:
-            # Reminder: this executes if the loop completes successfully,
-            # i.e. none of the children are selected
-            return False
-
-        # 2. There is a combination of settings that doesn't make sense.
-        mental_state = [child.is_sane for child in
-                        self.container.children if
-                        hasattr(child, 'is_sane') and child.is_sane is not None]
-        sanity = all(mental_state)
-        return sanity
 
     def format(self):
         super(CombinerWidget, self).format()
