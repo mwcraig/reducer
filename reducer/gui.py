@@ -732,17 +732,6 @@ class ToggleGoWidget(ToggleContainerWidget):
                                             str('value'))
         self._state_monitor.on_trait_change(set_color_for(self), str('value'))
 
-    def display(self):
-        """
-        Display, and then format, this widget.
-
-        Most IPython widget formatting must be done after the widget is
-        created.
-        """
-        from IPython.display import display
-        display(self)
-        self.format()
-
     def format(self):
         """
         Format the widget; must be invoked after displaying the widget.
