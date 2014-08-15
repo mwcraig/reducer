@@ -57,8 +57,8 @@ class ReductionWidget(ReducerBase):
         self._trim = TrimWidget(description='Trim (specify region to keep)?')
         self._cosmic_ray = CosmicRaySettingsWidget()
         self._bias_calib = BiasSubtractWidget(master_source=self._master_source)
-        self._dark_calib = DarkSubtractWidget(description="Subtract dark?")
-        self._flat_calib = CalibrationStepWidget(description="Flat correct?")
+        self._dark_calib = DarkSubtractWidget(master_source=self._master_source)
+        self._flat_calib = FlatCorrectWidget(master_source=self._master_source)
         self.add_child(self._overscan)
         self.add_child(self._trim)
         self.add_child(self._cosmic_ray)
@@ -450,9 +450,24 @@ class DarkSubtractWidget(CalibrationStepWidget):
             self.master = self._master_image(**{'imagetyp': 'dark'})
         else:
             self.master = None
+class FlatCorrectWidget(CalibrationStepWidget):
+    """
+    Subtract dark from an image using widget settings.
+    """
+    def __init__(self, bias_image=None, **kwd):
+        desc = kwd.pop('description', 'Flat correct?')
+        kwd['description'] = desc
+        super(FlatCorrectWidget, self).__init__(**kwd)
+        self.match_on = ['filter']
 
     def action(self, ccd):
-        return ccdproc.subtract_dark(ccd, self.master)
+        select_dict = {'imagetyp': 'flat'}
+        for keyword in self.match_on:
+            if keyword in select_dict:
+                raise ValueError("Keyword {} already has a value set".format(keyword))
+            select_dict[keyword] = ccd.header[keyword]
+        master = self._master_image(select_dict)
+        return ccdproc.flat_correct(ccd, master)
 
 
 class OverscanWidget(SliceWidget):
