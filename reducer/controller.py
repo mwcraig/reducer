@@ -85,6 +85,9 @@ class ReductionWidget(ReducerBase):
                                                      save_location=self.destination,
                                                      **self.apply_to):
             ccd = ccdproc.CCDData(data=hdu.data, meta=hdu.header, unit="adu")
+            # nasty hack to remove any headers which might have been
+            # mangled.
+
             for child in self.container.children:
                 if not child.toggle.value:
                     # Nothing to do for this child, so keep going.
@@ -92,6 +95,11 @@ class ReductionWidget(ReducerBase):
                 ccd = child.action(ccd)
             hdu_tmp = ccd.to_hdu()[0]
             print(ccd.shape)
+            try:
+                del hdu_tmp.header['subdark']
+                print("DELTED THE BASTARD")
+            except KeyError:
+                pass
             hdu.header = hdu_tmp.header
             hdu.data = hdu_tmp.data
             reduced_images.append(ccd)
