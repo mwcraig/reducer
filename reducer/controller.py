@@ -10,6 +10,8 @@ from astropy.modeling import models
 from astropy.io import fits
 import ccdproc
 
+import numpy as np
+
 from . import gui
 
 __all__ = [
@@ -144,12 +146,28 @@ class CombineWidget(gui.ToggleContainerWidget):
     def __init__(self, *args, **kwd):
         super(CombineWidget, self).__init__(*args, **kwd)
         self._combine_option = \
-            widgets.ToggleButtonsWidget(values=['Average', 'Median'])
+            widgets.ToggleButtonsWidget(description="Combination method:",
+                                        values=['Average', 'Median'])
         self.add_child(self._combine_option)
+        self._scaling = gui.ToggleContainerWidget(description="Scale before combining?")
+        scal_desc = "Which property should scale to same value?"
+        self._scale_by = widgets.RadioButtonsWidget(description=scal_desc,
+                                                    values=['mean', 'median'])
+        self._scaling.add_child(self._scale_by)
+        self.add_child(self._scaling)
 
     @property
     def method(self):
         return self._combine_option.value
+
+    @property
+    def scaling_func(self):
+        if not self._scaling.toggle.value:
+            return None
+        if self._scale_by == 'mean':
+            return lambda arr: 1/np.ma.average(arr)
+        elif self._scale_by == 'median':
+            return lambda arr: 1/np.ma.median(arr)
 
     @property
     def is_sane(self):
@@ -158,13 +176,6 @@ class CombineWidget(gui.ToggleContainerWidget):
         else:
             # In this case, the only options presented are sane ones
             return True
-
-    def format(self):
-        super(CombineWidget, self).format()
-        hbox_these = [self, self.container]
-        for hbox in hbox_these:
-            hbox.remove_class('vbox')
-            hbox.add_class('hbox')
 
 
 class GroupByWidget(gui.ToggleContainerWidget):
