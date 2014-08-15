@@ -207,7 +207,7 @@ class GroupByWidget(gui.ToggleContainerWidget):
 
         # remember, the rest is really an else to the above...
         from copy import deepcopy
-        keywords = self.value.split(',')
+        keywords = [k.strip() for k in self.value.split(',')]
         # Yuck...need to use an internal method to get the mask I need.
         tmp_coll = deepcopy(self._image_source)
         tmp_coll._find_keywords_by_values(**apply_to)
@@ -309,6 +309,8 @@ class CombinerWidget(ReducerBase):
             if self.sigma_clip.value:
                 combiner.sigma_clipping(low_thresh=self.sigma_clip.min,
                                         high_thresh=self.sigma_clip.max)
+        if self._combine_method.scaling_func:
+            combiner.scaling = self._combine_method.scaling_func
         if self._combine_method.method == 'Average':
             print("Averaging")
             combined = combiner.average_combine()
@@ -408,15 +410,36 @@ class CalibrationStepWidget(gui.ToggleContainerWidget):
         self.add_child(self._settings)
         self._source.on_trait_change(self._file_select_visibility(),
                                      str('value_name'))
+        self._image_cache = {}
+        self._match_on = []
+
+    @property
+    def match_on(self):
+        """
+        List of keywords whose values should match in the image being
+        calibated and the calibration image.
+        """
+        return self._match_on
+
+    @match_on.setter
+    def match_on(self, value):
+        self._match_on = value
 
     def _file_select_visibility(self):
         def file_visibility(name, value):
             self._file_select.visible = self._source_dict[value] == 'disk'
         return file_visibility
 
-    def _master_image(self, **selector):
+    def _master_image(self, selector):
         """
         Identify appropriate master and return as `ccdproc.CCDData`.
+
+        Parameters
+        ----------
+
+        selector : dict-like
+            Dictionary of key/value pairs that uniquely select the appropriate
+            master image.
         """
         if not self._master_source:
             raise RuntimeError("No source provided for master.")
@@ -426,7 +449,11 @@ class CalibrationStepWidget(gui.ToggleContainerWidget):
             raise RuntimeError("Well, crap. Should only be one master.")
         file_name = file_name[0]
         path = os.path.join(self._master_source.location, file_name)
-        return ccdproc.CCDData.read(path, unit="adu")
+        try:
+            return self._image_cache[path]
+        except KeyError:
+            self._image_cache[path] = ccdproc.CCDData.read(path, unit="adu")
+            return self._image_cache[path]
 
 
 class BiasSubtractWidget(CalibrationStepWidget):
@@ -437,13 +464,11 @@ class BiasSubtractWidget(CalibrationStepWidget):
         desc = kwd.pop('description', 'Subtract bias?')
         kwd['description'] = desc
         super(BiasSubtractWidget, self).__init__(**kwd)
-        if self._master_source:
-            self.master_bias = self._master_image(**{'imagetyp': 'bias'})
-        else:
-            self.master_bias = None
 
     def action(self, ccd):
-        return ccdproc.subtract_bias(ccd, self.master_bias)
+        select_dict = {'imagetyp': 'bias'}
+        master = self._master_image(select_dict)
+        return ccdproc.subtract_bias(ccd, master)
 
 
 class DarkSubtractWidget(CalibrationStepWidget):
@@ -454,10 +479,21 @@ class DarkSubtractWidget(CalibrationStepWidget):
         desc = kwd.pop('description', 'Subtract Dark?')
         kwd['description'] = desc
         super(DarkSubtractWidget, self).__init__(**kwd)
-        if self._master_source:
-            self.master = self._master_image(**{'imagetyp': 'dark'})
-        else:
-            self.master = None
+        self.match_on = ['exposure']
+
+    def action(self, ccd):
+        from astropy import units as u
+        select_dict = {'imagetyp': 'dark'}
+        for keyword in self.match_on:
+            if keyword in select_dict:
+                raise ValueError("Keyword {} already has a value set".format(keyword))
+            select_dict[keyword] = ccd.header[keyword]
+        master = self._master_image(select_dict)
+        return ccdproc.subtract_dark(ccd, master,
+                                     exposure_time='exposure',
+                                     exposure_unit=u.second)
+
+
 class FlatCorrectWidget(CalibrationStepWidget):
     """
     Subtract dark from an image using widget settings.
