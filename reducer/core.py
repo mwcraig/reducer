@@ -14,6 +14,9 @@ def main():
     working_dir = os.getcwd()
     dest_name = 'reduction.ipynb'
     dest_path = os.path.join(working_dir, dest_name)
+    if os.path.exists(dest_path):
+        raise RuntimeError("Notebook named {} already exists; "
+                           "remove before running reducer.".format(dest_name))
     shutil.copy(notebook_template, dest_path)
 
 
