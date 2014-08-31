@@ -233,6 +233,7 @@ class CombinerWidget(ReducerBase):
     def __init__(self, *args, **kwd):
         group_by_in = kwd.pop('group_by', '')
         self._image_source = kwd.pop('image_source', None)
+        self._file_base_name = kwd.pop('file_name_base', 'master')
         super(CombinerWidget, self).__init__(*args, **kwd)
         self._clipping_widget = \
             ClippingWidget(description="Clip before combining?")
@@ -277,8 +278,10 @@ class CombinerWidget(ReducerBase):
     def action(self):
         for combo_group in self._group_by.groups(self.apply_to):
             combined = self._action_for_one_group(combo_group)
-            fname = ['_'.join([str(k), str(v)]) for k, v in combo_group.iteritems()]
-            fname = 'master_bias_' + '_'.join(fname) + '.fit'
+            name_addons = ['_'.join([str(k), str(v)]) for k, v in combo_group.iteritems()]
+            fname = [self._file_base_name]
+            fname.extend(name_addons)
+            fname = '_'.join(fname) + '.fit'
             print(fname)
             dest_path = os.path.join(self.destination, fname)
             combined.write(dest_path)
