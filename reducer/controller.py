@@ -3,6 +3,7 @@ from __future__ import (division, print_function, absolute_import,
 
 from collections import OrderedDict
 import os
+import warnings
 
 from IPython.html import widgets
 
@@ -81,6 +82,8 @@ class ReductionWidget(ReducerBase):
         if not self.image_collection:
             raise ValueError("No images to reduce")
         reduced_images = []
+        # Suppress warnings that come up here...mostly about HIERARCH keywords
+        warnings.filterwarnings('ignore')
         try:
             for hdu, fname in self.image_collection.hdus(return_fname=True,
                                                          save_location=self.destination,
