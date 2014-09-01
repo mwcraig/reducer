@@ -81,22 +81,27 @@ class ReductionWidget(ReducerBase):
         if not self.image_collection:
             raise ValueError("No images to reduce")
         reduced_images = []
-        for hdu, fname in self.image_collection.hdus(return_fname=True,
-                                                     save_location=self.destination,
-                                                     **self.apply_to):
-            ccd = ccdproc.CCDData(data=hdu.data, meta=hdu.header, unit="adu")
-            # nasty hack to remove any headers which might have been
-            # mangled.
+        try:
+            for hdu, fname in self.image_collection.hdus(return_fname=True,
+                                                         save_location=self.destination,
+                                                         **self.apply_to):
+                ccd = ccdproc.CCDData(data=hdu.data, meta=hdu.header, unit="adu")
+                # nasty hack to remove any headers which might have been
+                # mangled.
 
-            for child in self.container.children:
-                if not child.toggle.value:
-                    # Nothing to do for this child, so keep going.
-                    continue
-                ccd = child.action(ccd)
-            hdu_tmp = ccd.to_hdu()[0]
-            hdu.header = hdu_tmp.header
-            hdu.data = hdu_tmp.data
-            reduced_images.append(ccd)
+                for child in self.container.children:
+                    if not child.toggle.value:
+                        # Nothing to do for this child, so keep going.
+                        continue
+                    ccd = child.action(ccd)
+                hdu_tmp = ccd.to_hdu()[0]
+                hdu.header = hdu_tmp.header
+                hdu.data = hdu_tmp.data
+                reduced_images.append(ccd)
+        except IOError:
+            print("One or more of the reduced images already exists. Delete "
+                  "those files and try again. This notebook will NOT "
+                  "overwrite existing files.")
         self._reduced_images = reduced_images
 
 
