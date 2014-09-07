@@ -494,7 +494,7 @@ class ToggleContainerWidget(widgets.ContainerWidget):
     -----
 
     Do *NOT* set the children of the ToggleContainerWidget; set the children
-    of ToggleContainerWidget.children
+    of ``ToggleContainerWidget.children`` or use the `add_child` method.
     """
     def __init__(self, *args, **kwd):
         toggle_types = {'checkbox': widgets.CheckboxWidget,
@@ -518,6 +518,16 @@ class ToggleContainerWidget(widgets.ContainerWidget):
 
         self._link_children()
         self._child_notify_parent_on_change(self.toggle)
+
+    def __str__(self):
+        # Build up a list of strings of top level and children
+        yes_no = lambda x: 'Yes' if x else 'No'
+        base = ' '.join([self.description, yes_no(self.toggle.value)])
+        if self.toggle.value:
+            child_strings = ['\t' + str(child) for child in self.container.children]
+            indented_kids = [s.replace('\n\t', '\n\t\t') for s in child_strings]
+            base += '\n' + '\n'.join(indented_kids)
+        return base
 
     @property
     def container(self):
@@ -693,6 +703,15 @@ class ToggleMinMaxWidget(ToggleContainerWidget):
         """
         return self._max_box.value
 
+    def __str__(self):
+        # Build up a list of strings of top level and children
+        yes_no = lambda x: 'Yes' if x else 'No'
+        base = ' '.join([self.description, yes_no(self.toggle.value)])
+        if self.toggle.value:
+            child_strings = ['\t' + str(child.description) + ': ' + str(child.value) for child in self.container.children]
+            indented_kids = [s.replace('\n\t', '\n\t\t') for s in child_strings]
+            base += '\n' + '\n'.join(indented_kids)
+        return base
 
 class ToggleGoWidget(ToggleContainerWidget):
     """

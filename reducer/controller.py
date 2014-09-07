@@ -21,6 +21,9 @@ __all__ = [
     'CosmicRaySettingsWidget',
     'SliceWidget',
     'CalibrationStepWidget',
+    'BiasSubtractWidget',
+    'DarkSubtractWidget',
+    'FlatCorrectWidget',
     'OverscanWidget',
     'TrimWidget'
 ]
@@ -149,20 +152,55 @@ class ClippingWidget(gui.ToggleContainerWidget):
         self._min_max.format()
 
 
+def override_str_factory(obj):
+    """
+    Factory to create a new class for an IPYthon widget in which the
+    ``__str__`` method is overridden with the widgets description and
+    value.
+
+    Parameters
+    ----------
+
+    obj : object
+        An IPython widget instance
+
+    Returns
+    -------
+
+    new_object : IPython widget with string method overridden
+    """
+    from copy import copy
+
+    def new_str_method(self):
+        return ": ".join([str(self.description), str(self.value)])
+
+    new_instance = copy(obj)
+    original_class = type(obj)
+    new_class = type(original_class.__name__,
+                     (original_class,),
+                     {'__str__': new_str_method})
+    new_instance.__class__ = new_class
+    return new_instance
+
+
 class CombineWidget(gui.ToggleContainerWidget):
     """
     Represent combine choices and actions.
     """
     def __init__(self, *args, **kwd):
         super(CombineWidget, self).__init__(*args, **kwd)
-        self._combine_option = \
+        self._combine_option = override_str_factory(
             widgets.ToggleButtonsWidget(description="Combination method:",
                                         values=['Average', 'Median'])
+        )
+
         self.add_child(self._combine_option)
         self._scaling = gui.ToggleContainerWidget(description="Scale before combining?")
         scal_desc = "Which property should scale to same value?"
-        self._scale_by = widgets.RadioButtonsWidget(description=scal_desc,
-                                                    values=['mean', 'median'])
+        self._scale_by = override_str_factory(
+            widgets.RadioButtonsWidget(description=scal_desc,
+                                       values=['mean', 'median'])
+        )
         self._scaling.add_child(self._scale_by)
         self.add_child(self._scaling)
 
@@ -193,7 +231,10 @@ class GroupByWidget(gui.ToggleContainerWidget):
         self._image_source = kwd.pop('image_source', None)
         input_value = kwd.pop('value', '')
         super(GroupByWidget, self).__init__(*args, **kwd)
-        self._keyword_list = widgets.TextWidget(value=input_value)
+        self._keyword_list = override_str_factory(
+            widgets.TextWidget(description='Keywords (comma-separated)',
+                               value=input_value)
+        )
         self.add_child(self._keyword_list)
         if input_value:
             self.toggle.value = True
@@ -332,9 +373,9 @@ class CosmicRaySettingsWidget(gui.ToggleContainerWidget):
         descript = kwd.pop('description', 'Clean cosmic rays?')
         kwd['description'] = descript
         super(CosmicRaySettingsWidget, self).__init__(*args, **kwd)
-        cr_choices = widgets.DropdownWidget(
-            description='Method:',
-            values={'median': None, 'LACosmic': None}
+        cr_choices = override_str_factory(
+            widgets.DropdownWidget(description='Method:',
+                                   values=['median', 'LACosmic'])
         )
         self.add_child(cr_choices)
 
@@ -343,24 +384,51 @@ class CosmicRaySettingsWidget(gui.ToggleContainerWidget):
         display(self)
 
 
-class SliceWidget(gui.ToggleContainerWidget):
-    def __init__(self, *arg, **kwd):
-        self.images = kwd.pop('images', [])
-        super(SliceWidget, self).__init__(*arg, **kwd)
-        drop_desc = ('Region is along all of')
-        self._axis_selection = widgets.ContainerWidget()
+class AxisSelectionWidget(widgets.ContainerWidget):
+    """docstring for AxisSelection"""
+    def __init__(self):
         values = OrderedDict()
         values["axis 0"] = 0
         values["axis 1"] = 1
+        drop_desc = ('Region is along all of')
+
         self._pre = widgets.ToggleButtonsWidget(description=drop_desc,
                                                 values=values)
         self._start = widgets.IntTextWidget(description='and on the other axis from index ')
         self._stop = widgets.IntTextWidget(description='up to (but not including):')
-        self._axis_selection.children = [
+        self.children = [
             self._pre,
             self._start,
             self._stop
         ]
+
+    def __str__(self):
+        gob = [' '.join([child.description, str(child.value)])
+               for child in self.children]
+        return ' '.join(gob)
+
+    @property
+    def full_axis(self):
+        return self._pre.value
+
+    @property
+    def start(self):
+        return self._start.value
+
+    @property
+    def stop(self):
+        return self._stop.value
+
+    def format(self):
+        self._start.set_css('width', '30px')
+        self._stop.set_css('width', '30px')
+
+
+class SliceWidget(gui.ToggleContainerWidget):
+    def __init__(self, *arg, **kwd):
+        self.images = kwd.pop('images', [])
+        super(SliceWidget, self).__init__(*arg, **kwd)
+        self._axis_selection = AxisSelectionWidget()
         self.add_child(self._axis_selection)
         for child in self._axis_selection.children:
             self._child_notify_parent_on_change(child)
@@ -371,8 +439,7 @@ class SliceWidget(gui.ToggleContainerWidget):
         for hbox in hbox_these:
             hbox.remove_class('vbox')
             hbox.add_class('hbox')
-        self._start.set_css('width', '30px')
-        self._stop.set_css('width', '30px')
+        self._axis_selection.format()
 
     @property
     def is_sane(self):
@@ -385,8 +452,33 @@ class SliceWidget(gui.ToggleContainerWidget):
             return None
         # Stop value must be larger than start (i.e. slice must contain at
         # least one row/column).
-        sanity = self._stop.value > self._start.value
+        sanity = self._axis_selection.stop > self._axis_selection.start
         return sanity
+
+
+class MasterImageSource(widgets.ContainerWidget):
+    """docstring for ReductionSource"""
+    def __init__(self):
+        super(MasterImageSource, self).__init__(description="Reduction choices")
+        self._source_dict = {'Created in this notebook': 'notebook',
+                             'File on disk': 'disk'}
+
+        self._source = widgets.ToggleButtonsWidget(description='Source:',
+                                                   values=self._source_dict)
+        self._source.on_trait_change(self._file_select_visibility(),
+                                     str('value_name'))
+        self._file_select = widgets.DropdownWidget(description="Select file:",
+                                                   values=["Not working yet"],
+                                                   visible=False)
+        self.children = [self._source, self._file_select]
+
+    def __str__(self):
+        return self._source.description + ' ' + str(self._source.value)
+
+    def _file_select_visibility(self):
+        def file_visibility(name, value):
+            self._file_select.visible = self._source_dict[value] == 'disk'
+        return file_visibility
 
 
 class CalibrationStepWidget(gui.ToggleContainerWidget):
@@ -401,20 +493,9 @@ class CalibrationStepWidget(gui.ToggleContainerWidget):
     def __init__(self, *args, **kwd):
         self._master_source = kwd.pop('master_source', None)
         super(CalibrationStepWidget, self).__init__(*args, **kwd)
-        self._source_dict = {'Created in this notebook': 'notebook',
-                             'File on disk': 'disk'}
-        self._settings = \
-            widgets.ContainerWidget(description="Reduction choices")
-
-        self._source = widgets.ToggleButtonsWidget(description='Source:',
-                                                   values=self._source_dict)
-        self._file_select = widgets.DropdownWidget(description="Select file:",
-                                                   values=["Not working yet"],
-                                                   visible=False)
-        self._settings.children = [self._source, self._file_select]
+        self._settings = MasterImageSource()
         self.add_child(self._settings)
-        self._source.on_trait_change(self._file_select_visibility(),
-                                     str('value_name'))
+
         self._image_cache = {}
         self._match_on = []
 
@@ -429,11 +510,6 @@ class CalibrationStepWidget(gui.ToggleContainerWidget):
     @match_on.setter
     def match_on(self, value):
         self._match_on = value
-
-    def _file_select_visibility(self):
-        def file_visibility(name, value):
-            self._file_select.visible = self._source_dict[value] == 'disk'
-        return file_visibility
 
     def _master_image(self, selector):
         """
@@ -519,20 +595,31 @@ class FlatCorrectWidget(CalibrationStepWidget):
         return ccdproc.flat_correct(ccd, master)
 
 
+class PolynomialDropdownWidget(widgets.DropdownWidget):
+    def __init__(self):
+        poly_values = OrderedDict()
+        poly_values["Order 0/one term (constant)"] = 1
+        poly_values["Order 1/two term (linear)"] = 2
+        poly_values["Order 2/three team (quadratic)"] = 3
+        poly_values["Are you serious? Higher order is silly."] = None
+        super(PolynomialDropdownWidget, self).__init__(
+            description="Choose fit",
+            values=poly_values,
+            value=1)
+
+    def __str__(self):
+        for k, v in self.values.iteritems():
+            if v == self.value:
+                return k
+
+
 class OverscanWidget(SliceWidget):
     """docstring for OverscanWidget"""
     def __init__(self, *arg, **kwd):
         super(OverscanWidget, self).__init__(*arg, **kwd)
         poly_desc = "Fit polynomial to overscan?"
         self._polyfit = gui.ToggleContainerWidget(description=poly_desc)
-        poly_values = OrderedDict()
-        poly_values["Order 0/one term (constant)"] = 1
-        poly_values["Order 1/two term (linear)"] = 2
-        poly_values["Order 2/three team (quadratic)"] = 3
-        poly_values["Are you serious? Higher order is silly."] = None
-        poly_dropdown = widgets.DropdownWidget(description="Choose fit",
-                                               values=poly_values,
-                                               value=1)
+        poly_dropdown = PolynomialDropdownWidget()
         self._polyfit.add_child(poly_dropdown)
         self.add_child(self._polyfit)
 
@@ -574,10 +661,11 @@ class OverscanWidget(SliceWidget):
             pass
 
         whole_axis = slice(None, None)
-        partial_axis = slice(self._start.value, self._stop.value)
+        partial_axis = slice(self._axis_selection.start,
+                             self._axis_selection.stop)
         # create a two-element list which will be filled with the appropriate
         # slice based on the widget settings.
-        if self._pre.value == 0:
+        if self._axis_selection.full_axis == 0:
             first_axis = whole_axis
             second_axis = partial_axis
             oscan_axis = 1
@@ -619,10 +707,11 @@ class TrimWidget(SliceWidget):
         if not self.toggle.value:
             pass
         whole_axis = slice(None, None)
-        partial_axis = slice(self._start.value, self._stop.value)
+        partial_axis = slice(self._axis_selection.start,
+                             self._axis_selection.stop)
         # create a two-element list which will be filled with the appropriate
         # slice based on the widget settings.
-        if self._pre.value == 0:
+        if self._axis_selection.full_axis == 0:
             trimmed = ccdproc.trim_image(ccd[whole_axis, partial_axis])
         else:
             trimmed = ccdproc.trim_image(ccd[partial_axis, whole_axis])
