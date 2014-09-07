@@ -827,6 +827,7 @@ class ToggleGoWidget(ToggleContainerWidget):
             """
             self.disabled = True
             self._go_button.disabled = True
+            print(self)
             self.action()
 
             # change button should really only appear after the work is done.
