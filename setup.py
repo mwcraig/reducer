@@ -14,10 +14,10 @@ class PyTest(TestCommand):
         errcode = pytest.main(self.test_args)
         sys.exit(errcode)
 
-ADD_THESE_BACK_TO_INSTALL_EVENTUALLY = ['ccdproc', 'photutils']
+ADD_THESE_BACK_TO_INSTALL_EVENTUALLY = ['photutils']
 
 INSTALL_REQUIRES = ['astropy>=0.4', 'numpy', 'scipy',
-                    'ipython>=2.0', 'msumastro>=0.5']
+                    'ipython>=2.0', 'msumastro>=0.5', 'ccdproc>=0.2.1']
 
 
 setup(
