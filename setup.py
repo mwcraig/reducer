@@ -35,7 +35,7 @@ setup(
     extras_require={
         'docs': ['numpydoc', 'sphinx-argparse', 'sphinx_rtd_theme'],
     },
-    tests_require=['pytest>1.4', 'pytest-capturelog'] + INSTALL_REQUIRES,
+    tests_require=['pytest>1.4'] + INSTALL_REQUIRES,
     cmdclass={'test': PyTest},
     entry_points={
         'console_scripts': [
