@@ -84,16 +84,20 @@ class ReductionWidget(ReducerBase):
     def action(self):
         if not self.image_collection:
             raise ValueError("No images to reduce")
+        self.progress_bar.visible = True
+
         reduced_images = []
         # Suppress warnings that come up here...mostly about HIERARCH keywords
         warnings.filterwarnings('ignore')
         try:
+            n_files = \
+                len(self.image_collection.files_filtered(**self.apply_to))
+            current_file = 0
             for hdu, fname in self.image_collection.hdus(return_fname=True,
                                                          save_location=self.destination,
                                                          **self.apply_to):
+                current_file += 1
                 ccd = ccdproc.CCDData(data=hdu.data, meta=hdu.header, unit="adu")
-                # nasty hack to remove any headers which might have been
-                # mangled.
 
                 for child in self.container.children:
                     if not child.toggle.value:
@@ -104,10 +108,16 @@ class ReductionWidget(ReducerBase):
                 hdu.header = hdu_tmp.header
                 hdu.data = hdu_tmp.data
                 reduced_images.append(ccd)
+                self.progress_bar.description = \
+                    ("Processed file {} of {}".format(current_file, n_files))
+                self.progress_bar.value = current_file/n_files
         except IOError:
             print("One or more of the reduced images already exists. Delete "
                   "those files and try again. This notebook will NOT "
                   "overwrite existing files.")
+        finally:
+            self.progress_bar.visible = False
+
         self._reduced_images = reduced_images
 
 
@@ -265,7 +275,7 @@ class GroupByWidget(gui.ToggleContainerWidget):
             d = {c: row[c] for c in combine_groups.colnames}
             group_list.append(d)
 
-        print(group_list)
+        #print(group_list)
         return group_list
 
 
@@ -323,18 +333,28 @@ class CombinerWidget(ReducerBase):
     def format(self):
         super(CombinerWidget, self).format()
         self._clipping_widget.format()
+        self.progress_bar.add_class('active progress-info progress-striped')
 
     def action(self):
-        for combo_group in self._group_by.groups(self.apply_to):
+        self.progress_bar.visible = True
+        self.progress_bar.value = 1.0
+
+        groups_to_combine = self._group_by.groups(self.apply_to)
+        n_groups = len(groups_to_combine)
+        for idx, combo_group in enumerate(groups_to_combine):
+            self.progress_bar.description = \
+                ("Processing {} of {} "
+                 "(may take several minutes)".format(idx + 1, n_groups))
             combined = self._action_for_one_group(combo_group)
-            name_addons = ['_'.join([str(k), str(v)]) for k, v in combo_group.iteritems()]
+            name_addons = ['_'.join([str(k), str(v)])
+                           for k, v in combo_group.iteritems()]
             fname = [self._file_base_name]
             fname.extend(name_addons)
             fname = '_'.join(fname) + '.fit'
-            print(fname)
             dest_path = os.path.join(self.destination, fname)
             combined.write(dest_path)
             self._combined = combined
+        self.progress_bar.visible = False
 
     def _action_for_one_group(self, filter_dict=None):
         combined_dict = self.apply_to.copy()
@@ -358,10 +378,8 @@ class CombinerWidget(ReducerBase):
         if self._combine_method.scaling_func:
             combiner.scaling = self._combine_method.scaling_func
         if self._combine_method.method == 'Average':
-            print("Averaging")
             combined = combiner.average_combine()
         elif self._combine_method.method == 'Median':
-            print("Median-ing")
             combined = combiner.median_combine()
         combined.header = images[0].header
         combined.header['master'] = True

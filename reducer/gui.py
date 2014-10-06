@@ -731,12 +731,18 @@ class ToggleGoWidget(ToggleContainerWidget):
                                                      disabled=True,
                                                      visible=False)
         self._go_container.children = [self._go_button, self._change_settings]
+        self._progress_container = widgets.ContainerWidget()
+        self._progress_bar = widgets.FloatProgressWidget(min=0, max=1.0,
+                                                         step=0.01, value=0.0,
+                                                         visible=False)
+        self._progress_container.children = [self._progress_bar]
         # we want the go button to be in a container below the
         #  ToggleContainer's container -- actually, no, want these
         # buttons controlled by toggle...wait, no, I really do want that, but
         # I also want to tie their visibility to the toggle.
         kids = list(self.children)
         kids.append(self._go_container)
+        kids.append(self._progress_container)
         self.children = kids
 
         # Tie visibility of go button to toggle state. Needs to be separate
@@ -774,6 +780,9 @@ class ToggleGoWidget(ToggleContainerWidget):
         self._change_settings.add_class('box-flex3')
         self._go_button.add_class('btn-info')
         self._change_settings.add_class('btn-inverse')
+        self._progress_container.set_css('width', '100%')
+        self._progress_bar.add_class('progress-info')
+        #self._progress_bar.set_css('width', '90%')
         for child in self._go_container.children:
             child.set_css('margin', '5px')
 
@@ -801,6 +810,10 @@ class ToggleGoWidget(ToggleContainerWidget):
                         and child.is_sane is not None]
         sanity = all(mental_state)
         return sanity
+
+    @property
+    def progress_bar(self):
+        return self._progress_bar
 
     def state_change_handler(self):
         """
