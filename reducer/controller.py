@@ -544,8 +544,12 @@ class CalibrationStepWidget(gui.ToggleContainerWidget):
             raise RuntimeError("No source provided for master.")
         file_name = self._master_source.files_filtered(master=True,
                                                        **selector)
-        if len(file_name) != 1:
-            raise RuntimeError("Well, crap. Should only be one master.")
+        if len(file_name) > 1:
+            raise RuntimeError("Well, crap. Should only be one master but "
+                               "found these matches: "
+                               "{} for {}.".format(file_name, selector))
+        elif len(file_name) == 0:
+            raise RuntimeError("No master found for {}".format(selector))
         file_name = file_name[0]
         path = os.path.join(self._master_source.location, file_name)
         try:
