@@ -529,7 +529,7 @@ class CalibrationStepWidget(gui.ToggleContainerWidget):
     def match_on(self, value):
         self._match_on = value
 
-    def _master_image(self, selector):
+    def _master_image(self, selector, closest=None):
         """
         Identify appropriate master and return as `ccdproc.CCDData`.
 
@@ -539,6 +539,11 @@ class CalibrationStepWidget(gui.ToggleContainerWidget):
         selector : dict-like
             Dictionary of key/value pairs that uniquely select the appropriate
             master image.
+
+        closest : str, optional
+            Name of keyword from ``selector`` whose value needs only be
+            closest to the value in the dictionary instead of being an
+            exact match.
         """
         if not self._master_source:
             raise RuntimeError("No source provided for master.")
@@ -549,7 +554,23 @@ class CalibrationStepWidget(gui.ToggleContainerWidget):
                                "found these matches: "
                                "{} for {}.".format(file_name, selector))
         elif len(file_name) == 0:
-            raise RuntimeError("No master found for {}".format(selector))
+            if closest is None:
+                raise RuntimeError("No master found for {}".format(selector))
+            else:
+                new_select = selector.copy()
+                del new_select[closest]
+                file_name = self._master_source.files_filtered(master=True,
+                                                               **new_select)
+                master_table = self._master_source.summary_info
+                min_dist = 1e20
+                for name in file_name:
+                    match = master_table['file'] == name
+                    distance = abs(master_table[closest][match] -
+                                   selector[closest])
+                    if distance <= min_dist:
+                        best_match = name
+                        min_dist = distance
+                file_name = [best_match]
         file_name = file_name[0]
         path = os.path.join(self._master_source.location, file_name)
         try:
@@ -574,6 +595,25 @@ class BiasSubtractWidget(CalibrationStepWidget):
         return ccdproc.subtract_bias(ccd, master)
 
 
+class DarkScaleSetting(widgets.ContainerWidget):
+    """docstring for DarkScaleSetting"""
+    def __init__(self, *arg, **kwd):
+        super(DarkScaleSetting, self).__init__(*arg, **kwd)
+        value_dict = {'Yes': True, 'No': False}
+        self._scale = override_str_factory(\
+            widgets.ToggleButtonsWidget(\
+                description='Scale dark by exposure time (if needed)',
+                values=value_dict))
+        self.children = [self._scale]
+
+    @property
+    def scale(self):
+        return self._scale.value
+
+    def __str__(self):
+        return str(self._scale)
+
+
 class DarkSubtractWidget(CalibrationStepWidget):
     """
     Subtract dark from an image using widget settings.
@@ -583,6 +623,8 @@ class DarkSubtractWidget(CalibrationStepWidget):
         kwd['description'] = desc
         super(DarkSubtractWidget, self).__init__(**kwd)
         self.match_on = ['exposure']
+        self._scale = DarkScaleSetting()
+        self.add_child(self._scale)
 
     def action(self, ccd):
         from astropy import units as u
@@ -591,10 +633,17 @@ class DarkSubtractWidget(CalibrationStepWidget):
             if keyword in select_dict:
                 raise ValueError("Keyword {} already has a value set".format(keyword))
             select_dict[keyword] = ccd.header[keyword]
-        master = self._master_image(select_dict)
+        if self._scale.scale:
+            master = self._master_image(select_dict, closest=self.match_on[0])
+            if not 'subbias' in master.meta:
+                raise RuntimeError("Bias has not been subtracted from dark, "
+                                   "so cannot scale dark")
+        else:
+            master = self._master_image(select_dict)
         return ccdproc.subtract_dark(ccd, master,
                                      exposure_time='exposure',
-                                     exposure_unit=u.second)
+                                     exposure_unit=u.second,
+                                     scale=self._scale.scale)
 
 
 class FlatCorrectWidget(CalibrationStepWidget):
