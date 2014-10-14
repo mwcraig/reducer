@@ -28,6 +28,8 @@ __all__ = [
     'TrimWidget'
 ]
 
+DEFAULT_IMAGE_UNIT = "adu"
+
 
 class ReducerBase(gui.ToggleGoWidget):
     """
@@ -97,7 +99,11 @@ class ReductionWidget(ReducerBase):
                                                          save_location=self.destination,
                                                          **self.apply_to):
                 current_file += 1
-                ccd = ccdproc.CCDData(data=hdu.data, meta=hdu.header, unit="adu")
+                try:
+                    unit = hdu.header['BUNIT']
+                except KeyError:
+                    unit = DEFAULT_IMAGE_UNIT
+                ccd = ccdproc.CCDData(data=hdu.data, meta=hdu.header, unit=unit)
 
                 for child in self.container.children:
                     if not child.toggle.value:
@@ -364,9 +370,13 @@ class CombinerWidget(ReducerBase):
         images = []
 
         for hdu in self.image_source.hdus(**combined_dict):
+            try:
+                unit = hdu.header['BUNIT']
+            except KeyError:
+                unit = DEFAULT_IMAGE_UNIT
             images.append(ccdproc.CCDData(data=hdu.data,
                                           meta=hdu.header,
-                                          unit="adu"))
+                                          unit=unit))
         combiner = ccdproc.Combiner(images)
         if self._clipping_widget.toggle.value:
             if self.min_max.value:
@@ -576,7 +586,12 @@ class CalibrationStepWidget(gui.ToggleContainerWidget):
         try:
             return self._image_cache[path]
         except KeyError:
-            self._image_cache[path] = ccdproc.CCDData.read(path, unit="adu")
+            # Try getting the unit form the FITS file, but force it to ADU
+            try:
+                self._image_cache[path] = ccdproc.CCDData.read(path)
+            except ValueError:
+                self._image_cache[path] = \
+                    ccdproc.CCDData.read(path, unit=DEFAULT_IMAGE_UNIT)
             return self._image_cache[path]
 
 
