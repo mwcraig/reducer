@@ -1,2 +1,2 @@
 include README.rst
-recursive-include reducer *.ipynb *.csv *.png *.fit
+recursive-include reducer *.ipynb *.csv *.png *.fit *.tbz2

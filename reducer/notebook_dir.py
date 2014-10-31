@@ -2,6 +2,8 @@ from __future__ import (division, print_function, absolute_import,
                         unicode_literals)
 
 import os
+import tarfile
+import tempfile
 
 from reducer import NOTEBOOK_TEMPLATE_NAME
 
@@ -30,6 +32,12 @@ def get_data_path():
     str
         Name of path
     """
+    compressed_base_name = 'mini_versions'
     this_dir = os.path.dirname(os.path.abspath(__file__))
-    data_dir = os.path.join(this_dir, 'data')
+    compressed_data_dir = os.path.join(this_dir, 'data')
+    compressed_data = tarfile.open(os.path.join(compressed_data_dir,
+                                                compressed_base_name + '.tbz2'))
+    temp_dir = tempfile.mkdtemp()
+    compressed_data.extractall(temp_dir)
+    data_dir = os.path.join(temp_dir, compressed_base_name)
     return data_dir
