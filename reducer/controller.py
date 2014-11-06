@@ -242,9 +242,9 @@ class CombineWidget(gui.ToggleContainerWidget):
     def scaling_func(self):
         if not self._scaling.toggle.value:
             return None
-        if self._scale_by == 'mean':
+        if self._scale_by.value == 'mean':
             return lambda arr: 1/np.ma.average(arr)
-        elif self._scale_by == 'median':
+        elif self._scale_by.value == 'median':
             return lambda arr: 1/np.ma.median(arr)
 
     @property
