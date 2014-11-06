@@ -137,6 +137,20 @@ class ClippingWidget(gui.ToggleContainerWidget):
         self.add_child(self._sigma_clip)
 
     @property
+    def min_max(self):
+        if self._min_max.toggle.value:
+            return self._min_max
+        else:
+            return False
+
+    @property
+    def sigma_clip(self):
+        if self._sigma_clip.toggle.value:
+            return self._sigma_clip
+        else:
+            return False
+
+    @property
     def is_sane(self):
         # If not selected, sanity state does not matter...
         if not self.toggle.value:
@@ -379,12 +393,13 @@ class CombinerWidget(ReducerBase):
                                           unit=unit))
         combiner = ccdproc.Combiner(images)
         if self._clipping_widget.toggle.value:
-            if self.min_max.value:
-                combiner.minmax_clipping(min_clip=self.min_max.min,
-                                         max_clip=self.min_max.max)
-            if self.sigma_clip.value:
-                combiner.sigma_clipping(low_thresh=self.sigma_clip.min,
-                                        high_thresh=self.sigma_clip.max)
+            if self._clipping_widget.min_max:
+                combiner.minmax_clipping(min_clip=self._clipping_widget.min_max.min,
+                                         max_clip=self._clipping_widget.min_max.max)
+            if self._clipping_widget.sigma_clip:
+                combiner.sigma_clipping(low_thresh=self._clipping_widget.sigma_clip.min,
+                                        high_thresh=self._clipping_widget.sigma_clip.max,
+                                        func=np.ma.median)
         if self._combine_method.scaling_func:
             combiner.scaling = self._combine_method.scaling_func
         if self._combine_method.method == 'Average':
