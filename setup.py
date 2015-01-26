@@ -22,7 +22,7 @@ INSTALL_REQUIRES = ['astropy>=0.4', 'numpy', 'scipy',
 
 setup(
     name='reducer',
-    version='0.1.deva592334',
+    version='0.1.dev7',
     description='Process FITS files',
     url='http://github.com/mwcraig/reducer',
     long_description=(open('README.rst').read()),
