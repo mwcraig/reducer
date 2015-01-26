@@ -633,7 +633,8 @@ class DarkScaleSetting(widgets.ContainerWidget):
         self._scale = override_str_factory(\
             widgets.ToggleButtonsWidget(\
                 description='Scale dark by exposure time (if needed)',
-                values=value_dict))
+                values=value_dict,
+                value=False))
         self.children = [self._scale]
 
     @property
