@@ -794,6 +794,8 @@ class TrimWidget(SliceWidget):
     """
     def __init__(self, *arg, **kwd):
         super(TrimWidget, self).__init__(*arg, **kwd)
+        # TODO: remove the line below sooner rather than later.
+        self._axis_selection._stop.value = 3073
 
     def action(self, ccd):
         """
