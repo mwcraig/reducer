@@ -391,7 +391,7 @@ class CombinerWidget(ReducerBase):
             images.append(ccdproc.CCDData(data=hdu.data,
                                           meta=hdu.header,
                                           unit=unit))
-        combiner = ccdproc.Combiner(images)
+        combiner = ccdproc.Combiner(images, dtype=images[0].dtype)
         if self._clipping_widget.toggle.value:
             if self._clipping_widget.min_max:
                 combiner.minmax_clipping(min_clip=self._clipping_widget.min_max.min,
@@ -408,6 +408,8 @@ class CombinerWidget(ReducerBase):
             combined = combiner.median_combine()
         combined.header = images[0].header
         combined.header['master'] = True
+        if combined.data.dtype != images[0].dtype:
+            combined.data = np.array(combined.data, dtype=images[0].dtype)
         return combined
 
 
