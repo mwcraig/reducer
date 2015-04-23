@@ -17,7 +17,7 @@ class PyTest(TestCommand):
 ADD_THESE_BACK_TO_INSTALL_EVENTUALLY = ['photutils']
 
 INSTALL_REQUIRES = ['astropy>=1.0', 'numpy', 'scipy', 'pillow',
-                    'ipython >2.0, < 3', 'msumastro>=0.7', 'ccdproc>=0.3']
+                    'ipython >2.0, < 3', 'msumastro>=0.8', 'ccdproc>=0.3']
 
 
 setup(
