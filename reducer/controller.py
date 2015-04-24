@@ -8,7 +8,6 @@ import warnings
 from IPython.html import widgets
 
 from astropy.modeling import models
-from astropy.io import fits
 import ccdproc
 
 import numpy as np
