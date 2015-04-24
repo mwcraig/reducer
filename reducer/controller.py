@@ -419,7 +419,7 @@ class CosmicRaySettingsWidget(gui.ToggleContainerWidget):
         super(CosmicRaySettingsWidget, self).__init__(*args, **kwd)
         cr_choices = override_str_factory(
             widgets.DropdownWidget(description='Method:',
-                                   values=['median', 'LACosmic'])
+                                   values=['median [not connected yet]', 'LACosmic [coming soon]'])
         )
         self.add_child(cr_choices)
 
