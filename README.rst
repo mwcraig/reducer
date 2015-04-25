@@ -7,7 +7,7 @@ New to python? Start here
 Getting started with python can be intimidating; if you have questions please
 `contact me <mailto:mcraig@mnstate.edu>`_!
 
-To actually run this tool you need to install the 
+To actually run this tool it is easiest to install the
 `anaconda python distribution <http://continuum.io/downloads>`_. It will
 *not* interfere in any way with other python installations you have.
 
@@ -31,12 +31,20 @@ Then, in a terminal/command window:
 
 ::
 
-    pip install --pre reducer
+    pip install reducer
 
 
 You can, if you want, grab the source on github (there is a "Download as
 ZIP" link on the right you can use if you don't want to mess git),
 change into the source directory, and run ``python setup.py install``.
+
+.. note::
+
+    `reducer` comes with a small set of images; the download size is roughly
+    13MB. It is provided so you can try the notebook without needing your own
+    data. If you run the notebook as-is then the sample images will get
+    expanded to 300MB in a temporary directory.
+
 
 Usage
 =====
@@ -67,11 +75,11 @@ Under the hood
 
 If you look at the source code you'll notice pretty quickly that there
 is no actual *science* code. Think of this as the glue that brings
-together a few related packages:
+together a couple related packages:
 
 -  `ccdproc <http://github.com/astropy/ccdproc>`__ for the actual data
    reduction.
--  `photutils <http://github.com/astropy/photutils>`__ for photometry.
 -  `astropy <http://github.com/astropy>`__ for lots of the underlying
    structure .
 
+If you are interested in
