@@ -51,7 +51,7 @@ Usage
 
 This package doesn't magically do your reduction for you. Instead, it
 creates a template `ipython notebook <http://ipython.org>`_ that leads
-you through data reduction and aperture photometry. When you are done
+you through data reduction. When you are done
 you have reduced your data and *you have a notebook that allows you or
 someone else to reproduce your work*.
 
