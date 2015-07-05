@@ -16,14 +16,12 @@ from .notebook_dir import get_data_path
 
 __all__ = [
     'LoadContainer',
-    'ImageDisplayStuff',
     'ImageTreeWidget',
     'FitsViewerWidget',
     'ImageBrowserWidget',
     'ToggleContainerWidget',
     'ToggleMinMaxWidget',
     'ToggleGoWidget',
-    'show_images',
     'ndarray_to_png',
     'set_color_for',
 ]
@@ -101,52 +99,6 @@ class LoadContainer(widgets.ContainerWidget):
         self.load_progress.remove_class(["progress-striped", "active"])
         self.load_progress.add_class("progress-success")
         self.button.disabled = False
-
-
-def show_images(button):
-    """
-    Do a quick and dirty plot of an image.
-
-    Parameters
-    ----------
-
-    button : `IPython.html.widgets.ButtonWidget`
-        Button whose click generated this call.
-    """
-    images = button.parent.image_list
-    num = len(images)
-
-    def view_image(i):
-        plt.imshow(images[i])
-        plt.title("Image {0}".format(i))
-        plt.show()
-    widgets.interact(view_image, i=(0, num - 1))
-
-
-class ImageDisplayStuff(widgets.ContainerWidget):
-    """
-    Widget to display a list of images with a slider.
-
-    Parameters
-    ----------
-
-    image_list : list
-        Images to be shown, as numpy arrays (or anything that can be
-        display with `matplotlilb.plt.imshow`)
-    """
-    def __init__(self, image_list=None):
-        super(ImageDisplayStuff, self).__init__()
-        if image_list is None:
-            image_list = []
-        button = widgets.ButtonWidget(description='Show reduced images')
-        button.parent = self
-        self.children = [button]
-        self.image_list = image_list
-        button.on_click(show_images)
-
-    def display(self):
-        from IPython.display import display
-        display(self)
 
 
 class ImageTreeWidget(object):
