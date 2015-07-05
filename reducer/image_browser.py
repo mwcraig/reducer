@@ -264,7 +264,7 @@ class FitsViewerWidget(object):
         return set_fits_file
 
 
-class ImageBrowserWidget(widgets.Box):
+class ImageBrowserWidget(widgets.HBox):
     """
     Browse a tree of FITS images and view image/header.
 
@@ -314,8 +314,6 @@ class ImageBrowserWidget(widgets.Box):
         Must be called after the widget is displayed, and is automatically
         called by the `display` method.
         """
-        self.remove_class('vbox')
-        self.add_class('hbox')
         self.set_css('width', '100%')
         self._tree_widget.format()
         self._fits_display.format()

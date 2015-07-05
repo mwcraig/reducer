@@ -272,7 +272,7 @@ class ToggleGoWidget(ToggleContainerWidget):
         from IPython.utils.traitlets import link
 
         super(ToggleGoWidget, self).__init__(*args, **kwd)
-        self._go_container = widgets.Box(visible=self.toggle.value)
+        self._go_container = widgets.HBox(visible=self.toggle.value)
         self._go_button = widgets.Button(description="Lock settings and Go!",
                                          disabled=True, visible=False)
         self._change_settings = widgets.Button(description="Unlock settings",
@@ -322,8 +322,6 @@ class ToggleGoWidget(ToggleContainerWidget):
         self.container.set_css('padding', '5px')
         self._toggle_container.set_css('width', '100%')
         self._checkbox.set_css('width', '100%')
-        self._go_container.remove_class('vbox')
-        self._go_container.add_class('hbox')
         self._go_container.set_css('padding', '5px')
         self._go_container.set_css('width', '100%')
         self._go_button.add_class('box-flex1')
