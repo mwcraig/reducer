@@ -12,4 +12,6 @@ Contents:
    :maxdepth: 2
 
    gui
-   controller
+   image_browser
+   astro_gui
+
