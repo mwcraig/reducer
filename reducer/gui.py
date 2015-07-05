@@ -11,14 +11,14 @@ __all__ = [
 ]
 
 
-class ToggleContainerWidget(widgets.ContainerWidget):
+class ToggleContainerWidget(widgets.Box):
     """
     A widget whose state controls the visibility of its chilren.
 
     Parameters
     ----------
 
-    Same as parameters for a `~IPython.html.widgets.ContainerWidget`, but
+    Same as parameters for a `~IPython.html.widgets.Box`, but
     note that the description of the ToggleContainerWidget is used to set the
     description of the checkbox that controls the display, AND
 
@@ -45,18 +45,18 @@ class ToggleContainerWidget(widgets.ContainerWidget):
     of ``ToggleContainerWidget.children`` or use the `add_child` method.
     """
     def __init__(self, *args, **kwd):
-        toggle_types = {'checkbox': widgets.CheckboxWidget,
-                        'button': widgets.ToggleButtonWidget}
+        toggle_types = {'checkbox': widgets.Checkbox,
+                        'button': widgets.ToggleButton}
         toggle_type = kwd.pop('toggle_type', 'checkbox')
         if toggle_type not in toggle_types:
             raise ValueError('toggle_type must be one of '
                              '{}'.format(toggle_type.keys()))
         super(ToggleContainerWidget, self).__init__(*args, **kwd)
-        self._toggle_container = widgets.ContainerWidget(description='toggle holder')
+        self._toggle_container = widgets.Box(description='toggle holder')
         self._checkbox = toggle_types[toggle_type](description=self.description)
         self._toggle_container.children = [self._checkbox]
-        self._container = widgets.ContainerWidget(description="Toggle-able container")
-        self._state_monitor = widgets.CheckboxWidget(visible=False)
+        self._container = widgets.Box(description="Toggle-able container")
+        self._state_monitor = widgets.Checkbox(visible=False)
 
         self.children = [
             self._toggle_container,
@@ -223,8 +223,8 @@ class ToggleMinMaxWidget(ToggleContainerWidget):
     """
     def __init__(self, *args, **kwd):
         super(ToggleMinMaxWidget, self).__init__(*args, **kwd)
-        self._min_box = widgets.FloatTextWidget(description="Low threshold")
-        self._max_box = widgets.FloatTextWidget(description="High threshold")
+        self._min_box = widgets.FloatText(description="Low threshold")
+        self._max_box = widgets.FloatText(description="High threshold")
         self.add_child(self._min_box)
         self.add_child(self._max_box)
 
@@ -272,17 +272,17 @@ class ToggleGoWidget(ToggleContainerWidget):
         from IPython.utils.traitlets import link
 
         super(ToggleGoWidget, self).__init__(*args, **kwd)
-        self._go_container = widgets.ContainerWidget(visible=self.toggle.value)
-        self._go_button = widgets.ButtonWidget(description="Lock settings and Go!",
-                                               disabled=True, visible=False)
-        self._change_settings = widgets.ButtonWidget(description="Unlock settings",
-                                                     disabled=True,
-                                                     visible=False)
+        self._go_container = widgets.Box(visible=self.toggle.value)
+        self._go_button = widgets.Button(description="Lock settings and Go!",
+                                         disabled=True, visible=False)
+        self._change_settings = widgets.Button(description="Unlock settings",
+                                               disabled=True,
+                                               visible=False)
         self._go_container.children = [self._go_button, self._change_settings]
-        self._progress_container = widgets.ContainerWidget()
-        self._progress_bar = widgets.FloatProgressWidget(min=0, max=1.0,
-                                                         step=0.01, value=0.0,
-                                                         visible=False)
+        self._progress_container = widgets.Box()
+        self._progress_bar = widgets.FloatProgress(min=0, max=1.0,
+                                                   step=0.01, value=0.0,
+                                                   visible=False)
         self._progress_container.children = [self._progress_bar]
         # we want the go button to be in a container below the
         #  ToggleContainer's container -- actually, no, want these

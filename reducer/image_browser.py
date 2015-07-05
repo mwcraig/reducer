@@ -89,8 +89,8 @@ class ImageTreeWidget(object):
         -----
 
         Each node of the tree is either an
-        `IPython.html.widgets.AccordionWidget`, if the node has child nodes,
-        or a `IPython.html.widgets.SelectWidget`, if the node has a list.
+        `IPython.html.widgets.Accordion`, if the node has child nodes,
+        or a `IPython.html.widgets.Select`, if the node has a list.
 
         Note well this does **not** allow for the case of child nodes and
         a list, so this does not really suffice as a file browser.
@@ -109,7 +109,7 @@ class ImageTreeWidget(object):
             except IndexError:
                 key = ''
             if depth == 0:
-                self._top = widgets.AccordionWidget(description=key)
+                self._top = widgets.Accordion(description=key)
                 self._gui_objects[parent_string] = self._top
 
             parent = self._gui_objects[parent_string]
@@ -118,7 +118,7 @@ class ImageTreeWidget(object):
                 child_objects = []
                 for child in children:
                     desc = ": ".join([key, str(child)])
-                    child_container = widgets.AccordionWidget(description=desc)
+                    child_container = widgets.Accordion(description=desc)
                     child_container.parent = self._gui_objects[parent_string]
                     child_string = os.path.join(parent_string, str(child))
                     self._gui_objects[child_string] = child_container
@@ -126,7 +126,7 @@ class ImageTreeWidget(object):
                 parent.children = child_objects
             # Do I have only a list? Populate a select box with those...
             if index:
-                new_text = widgets.SelectWidget(values=index)
+                new_text = widgets.Select(values=index)
                 index_string = self._id_string([parent_string, 'files'])
                 self._gui_objects[index_string] = new_text
                 old_parent = parent
@@ -136,7 +136,7 @@ class ImageTreeWidget(object):
                 n_files = len(index)
                 desc += " ({0} image{1})".format(n_files,
                                                  s_or_not[n_files > 1])
-                parent = widgets.ContainerWidget(description=desc)
+                parent = widgets.Box(description=desc)
                 parent.children = [new_text]
                 parent.parent = grandparent
                 self._replace_child(grandparent, old=old_parent, new=parent)
@@ -158,9 +158,9 @@ class ImageTreeWidget(object):
         """
         #self._top.set_css({'width': '50%'})
         for name, obj in self._gui_objects.iteritems():
-            if isinstance(obj, widgets.AccordionWidget):
+            if isinstance(obj, widgets.Accordion):
                 for idx, child in enumerate(obj.children):
-                    if not isinstance(child, widgets.SelectWidget):
+                    if not isinstance(child, widgets.Select):
                         obj.set_title(idx, child.description)
 
 
@@ -192,12 +192,12 @@ class FitsViewerWidget(object):
 
     """
     def __init__(self):
-        self._top = widgets.TabWidget(visible=False)
+        self._top = widgets.Tab(visible=False)
         self._data = None  # hdu.data
         self._png_image = None  # ndarray_to_png(self._data)
         self._header = ''
-        self._image = widgets.ImageWidget()
-        self._header_display = widgets.TextareaWidget(disabled=True)
+        self._image = widgets.Image()
+        self._header_display = widgets.Textarea(disabled=True)
         self._top.children = [self._image, self._header_display]
 
     @property
@@ -264,7 +264,7 @@ class FitsViewerWidget(object):
         return set_fits_file
 
 
-class ImageBrowserWidget(widgets.ContainerWidget):
+class ImageBrowserWidget(widgets.Box):
     """
     Browse a tree of FITS images and view image/header.
 
@@ -325,7 +325,7 @@ class ImageBrowserWidget(widgets.ContainerWidget):
             child.set_css('margin', '10px')
 
     def _add_handler(self, node):
-        if isinstance(node, widgets.SelectWidget):
+        if isinstance(node, widgets.Select):
             node.on_trait_change(
                 self._fits_display.set_fits_file_callback(demo=self._demo,
                                                           image_dir=self._directory),

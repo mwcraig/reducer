@@ -222,7 +222,7 @@ class CombineWidget(gui.ToggleContainerWidget):
     def __init__(self, *args, **kwd):
         super(CombineWidget, self).__init__(*args, **kwd)
         self._combine_option = override_str_factory(
-            widgets.ToggleButtonsWidget(description="Combination method:",
+            widgets.ToggleButtons(description="Combination method:",
                                         values=['Average', 'Median'])
         )
 
@@ -230,7 +230,7 @@ class CombineWidget(gui.ToggleContainerWidget):
         self._scaling = gui.ToggleContainerWidget(description="Scale before combining?")
         scal_desc = "Which property should scale to same value?"
         self._scale_by = override_str_factory(
-            widgets.RadioButtonsWidget(description=scal_desc,
+            widgets.RadioButtons(description=scal_desc,
                                        values=['mean', 'median'])
         )
         self._scaling.add_child(self._scale_by)
@@ -264,7 +264,7 @@ class GroupByWidget(gui.ToggleContainerWidget):
         input_value = kwd.pop('value', '')
         super(GroupByWidget, self).__init__(*args, **kwd)
         self._keyword_list = override_str_factory(
-            widgets.TextWidget(description='Keywords (comma-separated)',
+            widgets.Text(description='Keywords (comma-separated)',
                                value=input_value)
         )
         self.add_child(self._keyword_list)
@@ -425,7 +425,7 @@ class CosmicRaySettingsWidget(gui.ToggleContainerWidget):
         kwd['description'] = descript
         super(CosmicRaySettingsWidget, self).__init__(*args, **kwd)
         cr_choices = override_str_factory(
-            widgets.DropdownWidget(description='Method:',
+            widgets.Dropdown(description='Method:',
                                    values=['median [not connected yet]', 'LACosmic [coming soon]'])
         )
         self.add_child(cr_choices)
@@ -435,7 +435,7 @@ class CosmicRaySettingsWidget(gui.ToggleContainerWidget):
         display(self)
 
 
-class AxisSelectionWidget(widgets.ContainerWidget):
+class AxisSelectionWidget(widgets.Box):
     """docstring for AxisSelection"""
     def __init__(self):
         values = OrderedDict()
@@ -443,10 +443,10 @@ class AxisSelectionWidget(widgets.ContainerWidget):
         values["axis 1"] = 1
         drop_desc = ('Region is along all of')
 
-        self._pre = widgets.ToggleButtonsWidget(description=drop_desc,
+        self._pre = widgets.ToggleButtons(description=drop_desc,
                                                 values=values)
-        self._start = widgets.IntTextWidget(description='and on the other axis from index ')
-        self._stop = widgets.IntTextWidget(description='up to (but not including):')
+        self._start = widgets.IntText(description='and on the other axis from index ')
+        self._stop = widgets.IntText(description='up to (but not including):')
         self.children = [
             self._pre,
             self._start,
@@ -507,18 +507,18 @@ class SliceWidget(gui.ToggleContainerWidget):
         return sanity
 
 
-class MasterImageSource(widgets.ContainerWidget):
+class MasterImageSource(widgets.Box):
     """docstring for ReductionSource"""
     def __init__(self):
         super(MasterImageSource, self).__init__(description="Reduction choices")
         self._source_dict = {'Created in this notebook': 'notebook',
                              'File on disk': 'disk'}
 
-        self._source = widgets.ToggleButtonsWidget(description='Source:',
+        self._source = widgets.ToggleButtons(description='Source:',
                                                    values=self._source_dict)
         self._source.on_trait_change(self._file_select_visibility(),
                                      str('value_name'))
-        self._file_select = widgets.DropdownWidget(description="Select file:",
+        self._file_select = widgets.Dropdown(description="Select file:",
                                                    values=["Not working yet"],
                                                    visible=False)
         self.children = [self._source, self._file_select]
@@ -633,13 +633,13 @@ class BiasSubtractWidget(CalibrationStepWidget):
         return ccdproc.subtract_bias(ccd, master)
 
 
-class DarkScaleSetting(widgets.ContainerWidget):
+class DarkScaleSetting(widgets.Box):
     """docstring for DarkScaleSetting"""
     def __init__(self, *arg, **kwd):
         super(DarkScaleSetting, self).__init__(*arg, **kwd)
         value_dict = {'Yes': True, 'No': False}
         self._scale = override_str_factory(\
-            widgets.ToggleButtonsWidget(\
+            widgets.ToggleButtons(\
                 description='Scale dark by exposure time (if needed)',
                 values=value_dict,
                 value=False))
@@ -705,7 +705,7 @@ class FlatCorrectWidget(CalibrationStepWidget):
         return ccdproc.flat_correct(ccd, master)
 
 
-class PolynomialDropdownWidget(widgets.DropdownWidget):
+class PolynomialDropdownWidget(widgets.Dropdown):
     def __init__(self):
         poly_values = OrderedDict()
         poly_values["Order 0/one term (constant)"] = 1
