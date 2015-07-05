@@ -860,6 +860,25 @@ class ToggleGoWidget(ToggleContainerWidget):
             self._change_settings.visible = False
         return handler
 
+    def action(self):
+        """
+        The default action is to invoke the action of each child with an
+        update of the progress bar along the way.
+        """
+        self.progress_bar.visible = True
+        self.progress_bar.value = 0
+        for idx, child in enumerate(self.container.children):
+            self.progress_bar.value = (idx + 1) / (len(self.children) + 1)
+
+            try:
+                child.action()
+            except AttributeError:
+                pass
+            self.progress_bar.value = (idx + 1)/len(self.children)
+            # Sleep for a bit so we can see progress happening.
+
+        self.progress_bar.visible = False
+
 
 def set_color_for(a_widget):
     def set_color(name, value):
