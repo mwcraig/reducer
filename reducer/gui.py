@@ -770,6 +770,8 @@ class ToggleGoWidget(ToggleContainerWidget):
         #self._clipping_widget.format()
         self.container.set_css({'border': '1px grey solid',
                                 'border-radius': '10px'})
+        self.container.set_css('width', '100%')
+        self.container.set_css('padding', '5px')
         self._toggle_container.set_css('width', '100%')
         self._checkbox.set_css('width', '100%')
         self._go_container.remove_class('vbox')
