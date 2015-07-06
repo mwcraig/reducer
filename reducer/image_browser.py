@@ -264,7 +264,7 @@ class FitsViewerWidget(object):
         return set_fits_file
 
 
-class ImageBrowserWidget(widgets.HBox):
+class ImageBrowserWidget(widgets.FlexBox):
     """
     Browse a tree of FITS images and view image/header.
 
@@ -277,6 +277,7 @@ class ImageBrowserWidget(widgets.HBox):
     def __init__(self, tree, *args, **kwd):
         self._directory = kwd.pop('directory', '.')
         self._demo = kwd.pop('demo', True)
+        kwd['orientation'] = 'horizontal'
         super(ImageBrowserWidget, self).__init__(*args, **kwd)
         self._tree_widget = ImageTreeWidget(tree)
         self._fits_display = FitsViewerWidget()
