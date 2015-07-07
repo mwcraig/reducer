@@ -15,7 +15,7 @@ class PyTest(TestCommand):
         sys.exit(errcode)
 
 INSTALL_REQUIRES = ['astropy>=1.0', 'numpy', 'scipy', 'pillow',
-                    'ipython >2.0, < 3', 'msumastro>=0.8', 'ccdproc>=0.3',
+                    'ipython >3.0', 'msumastro>=0.8', 'ccdproc>=0.3',
                     'matplotlib']
 
 
