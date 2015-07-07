@@ -318,8 +318,10 @@ class ImageBrowserWidget(widgets.FlexBox):
         self.set_css('width', '100%')
         self._tree_widget.format()
         self._fits_display.format()
-        self.tree_widget.add_class('box-flex1')
-        self.fits_display.add_class('box-flex2')
+        # self.tree_widget.add_class('box-flex1')
+        self.tree_widget.width = '33%'
+        # self.fits_display.add_class('box-flex2')
+        self.fits_display.width = '67%'
         for child in self.children:
             child.set_css('margin', '10px')
 
