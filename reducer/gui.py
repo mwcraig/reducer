@@ -232,8 +232,7 @@ class ToggleMinMaxWidget(ToggleContainerWidget):
         super(ToggleMinMaxWidget, self).format()
         hbox_these = [self, self.container]
         for hbox in hbox_these:
-            hbox.remove_class('vbox')
-            hbox.add_class('hbox')
+            hbox.orientation = 'horizontal'
         for child in self.container.children:
             child.set_css('width', '30px')
 

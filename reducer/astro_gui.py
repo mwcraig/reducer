@@ -488,8 +488,7 @@ class SliceWidget(gui.ToggleContainerWidget):
         super(SliceWidget, self).format()
         hbox_these = [self._axis_selection]  # [self, self.container]
         for hbox in hbox_these:
-            hbox.remove_class('vbox')
-            hbox.add_class('hbox')
+            hbox.orientation = 'horizontal'
         self._axis_selection.format()
 
     @property
@@ -736,8 +735,7 @@ class OverscanWidget(SliceWidget):
     def format(self):
         super(OverscanWidget, self).format()
         self._polyfit.format()
-        self._polyfit.remove_class('vbox')
-        self._polyfit.add_class('hbox')
+        self._polyfit.orientation = 'horizontal'
 
     @property
     def is_sane(self):
