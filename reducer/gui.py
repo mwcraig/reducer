@@ -11,7 +11,7 @@ __all__ = [
 ]
 
 
-class ToggleContainerWidget(widgets.Box):
+class ToggleContainerWidget(widgets.FlexBox):
     """
     A widget whose state controls the visibility of its chilren.
 
