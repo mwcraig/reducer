@@ -221,7 +221,8 @@ class FitsViewerWidget(object):
         """
         self._top.set_title(0, 'Image')
         self._top.set_title(1, 'Header')
-        self._header_display.set_css('height', '300px')
+        # self._header_display.set_css('height', '300px')
+        self._header_display.height = '300px'
 
     def set_fits_file_callback(self, demo=True, image_dir=None):
         """
@@ -315,15 +316,19 @@ class ImageBrowserWidget(widgets.FlexBox):
         Must be called after the widget is displayed, and is automatically
         called by the `display` method.
         """
-        self.set_css('width', '100%')
+        # self.set_css('width', '100%')
+        self.width = '100%'
+
         self._tree_widget.format()
         self._fits_display.format()
+
         # self.tree_widget.add_class('box-flex1')
         self.tree_widget.width = '33%'
         # self.fits_display.add_class('box-flex2')
         self.fits_display.width = '67%'
         for child in self.children:
-            child.set_css('margin', '10px')
+            # child.set_css('margin', '10px')
+            child.margin = '10px'
 
     def _add_handler(self, node):
         if isinstance(node, widgets.Select):
