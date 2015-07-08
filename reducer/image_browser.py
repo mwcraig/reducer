@@ -126,7 +126,7 @@ class ImageTreeWidget(object):
                 parent.children = child_objects
             # Do I have only a list? Populate a select box with those...
             if index:
-                new_text = widgets.Select(values=index)
+                new_text = widgets.Select(options=index)
                 index_string = self._id_string([parent_string, 'files'])
                 self._gui_objects[index_string] = new_text
                 old_parent = parent
