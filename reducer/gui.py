@@ -152,12 +152,18 @@ class ToggleContainerWidget(widgets.FlexBox):
         Must be called after the widget is displayed, and is automatically
         called by the `display` method.
         """
-        self._toggle_container.set_css('padding', '3px')
-        self.container.set_css('padding', '0px 0px 0px 30px')
+        # self._toggle_container.set_css('padding', '3px')
+        self._toggle_container.padding = '3px'
+
+        # self.container.set_css('padding', '0px 0px 0px 30px')
+        self.container.padding = '0px 0px 0px 30px'
+
         #self.container.set_css('border', '1px red solid')
         #self._toggle_container.set_css('border', '1px red solid')
-        self._toggle_container.remove_class('start')
-        self._toggle_container.add_class('center')
+
+        # self._toggle_container.remove_class('start')
+        # self._toggle_container.add_class('center')
+        self._toggle_container.align = 'center'
 
     def add_child(self, child):
         """
