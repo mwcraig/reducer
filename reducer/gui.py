@@ -4,86 +4,11 @@ from __future__ import (division, print_function, absolute_import,
 from IPython.html import widgets
 
 __all__ = [
-    'LoadContainer',
     'ToggleContainerWidget',
     'ToggleMinMaxWidget',
     'ToggleGoWidget',
     'set_color_for',
 ]
-
-
-class LoadContainer(widgets.ContainerWidget):
-    """
-    Widget for loading a collection of FITS files
-
-    Parameters
-    ----------
-
-    data_dir : str
-        DIrectory in which the data is located.
-    """
-    def __init__(self, *args, **kwd):
-        data_directory = kwd.pop('data_dir', None)
-        super(LoadContainer, self).__init__(*args, **kwd)
-        self.description = "Hold file loading info"
-        self.button = \
-            widgets.ButtonWidget()
-        # add container to the button object so it can introspect in the
-        # on_click callback.
-
-        # REPLACE THIS WITH A CLOSURE
-        self.button.container = self
-
-        self.load_progress = widgets.FloatProgressWidget(min=0, max=1,
-                                                         step=0.01, value=1,
-                                                         description="Loading",
-                                                         visible=False)
-        self.status_label = widgets.LatexWidget(visible=False)
-        self.children = [self.button,
-                         self.load_progress,
-                         self.status_label]
-
-    def display(self):
-        """
-        Display and format this widget.
-        """
-        from IPython.display import display
-        display(self)
-        self.format()
-
-    def format(self):
-        """
-        Format widget.
-
-        Must be called after the widget is displayed, and is automatically called
-        by the `display` method.
-        """
-        self.remove_class('vbox')
-        self.add_class('hbox')
-        self.add_class('align-center')
-        self.set_css('width', '100%')
-        self.button.add_class('btn-info')
-        self.button.set_css('width', '50%')
-
-    def start_progress(self):
-        """
-        Change state of progress bar to indicate beginning of operation.
-        """
-        self.load_progress.visible = True
-        self.load_progress.description = "Loading"
-        self.load_progress.remove_class("progress-success")
-        self.load_progress.add_class(["progress", "progress-striped", "active"])
-        self.button.disabled = True
-        self.button.set_css('width', '25%')
-
-    def end_progress(self):
-        """
-        Change state of progress bar to indicate end of operation.
-        """
-        self.load_progress.description = "Done!"
-        self.load_progress.remove_class(["progress-striped", "active"])
-        self.load_progress.add_class("progress-success")
-        self.button.disabled = False
 
 
 class ToggleContainerWidget(widgets.ContainerWidget):
