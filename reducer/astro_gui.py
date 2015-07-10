@@ -87,6 +87,9 @@ class ReductionWidget(ReducerBase):
             raise ValueError("No images to reduce")
         self.progress_bar.visible = True
 
+        # Refresh in case files have been added since the widget was created.
+        self.image_collection.refresh()
+
         reduced_images = []
         # Suppress warnings that come up here...mostly about HIERARCH keywords
         warnings.filterwarnings('ignore')
@@ -357,6 +360,10 @@ class CombinerWidget(ReducerBase):
     def action(self):
         self.progress_bar.visible = True
         self.progress_bar.value = 1.0
+
+        # Refresh image collection in case files were added after widget was
+        # created.
+        self.image_source.refresh()
 
         groups_to_combine = self._group_by.groups(self.apply_to)
         n_groups = len(groups_to_combine)
