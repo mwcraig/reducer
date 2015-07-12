@@ -236,7 +236,7 @@ class CombineWidget(gui.ToggleContainerWidget):
         super(CombineWidget, self).__init__(*args, **kwd)
         self._combine_option = override_str_factory(
             widgets.ToggleButtons(description="Combination method:",
-                                        values=['Average', 'Median'])
+                                        options=['Average', 'Median'])
         )
 
         self.add_child(self._combine_option)
@@ -244,7 +244,7 @@ class CombineWidget(gui.ToggleContainerWidget):
         scal_desc = "Which property should scale to same value?"
         self._scale_by = override_str_factory(
             widgets.RadioButtons(description=scal_desc,
-                                       values=['mean', 'median'])
+                                       options=['mean', 'median'])
         )
         self._scaling.add_child(self._scale_by)
         self.add_child(self._scaling)
@@ -439,7 +439,7 @@ class CosmicRaySettingsWidget(gui.ToggleContainerWidget):
         super(CosmicRaySettingsWidget, self).__init__(*args, **kwd)
         cr_choices = override_str_factory(
             widgets.Dropdown(description='Method:',
-                                   values=['median [not connected yet]', 'LACosmic [coming soon]'])
+                                   options=['median [not connected yet]', 'LACosmic [coming soon]'])
         )
         self.add_child(cr_choices)
 
@@ -457,7 +457,7 @@ class AxisSelectionWidget(widgets.Box):
         drop_desc = ('Region is along all of')
 
         self._pre = widgets.ToggleButtons(description=drop_desc,
-                                                values=values)
+                                          options=values)
         self._start = widgets.IntText(description='and on the other axis from index ')
         self._stop = widgets.IntText(description='up to (but not including):')
         self.children = [
@@ -527,11 +527,11 @@ class MasterImageSource(widgets.Box):
                              'File on disk': 'disk'}
 
         self._source = widgets.ToggleButtons(description='Source:',
-                                                   values=self._source_dict)
+                                                   options=self._source_dict)
         self._source.on_trait_change(self._file_select_visibility(),
                                      str('value_name'))
         self._file_select = widgets.Dropdown(description="Select file:",
-                                                   values=["Not working yet"],
+                                                   options=["Not working yet"],
                                                    visible=False)
         self.children = [self._source, self._file_select]
 
@@ -653,7 +653,7 @@ class DarkScaleSetting(widgets.Box):
         self._scale = override_str_factory(\
             widgets.ToggleButtons(\
                 description='Scale dark by exposure time (if needed)',
-                values=value_dict,
+                options=value_dict,
                 value=False))
         self.children = [self._scale]
 
@@ -726,7 +726,7 @@ class PolynomialDropdownWidget(widgets.Dropdown):
         poly_values["Are you serious? Higher order is silly."] = None
         super(PolynomialDropdownWidget, self).__init__(
             description="Choose fit",
-            values=poly_values,
+            options=poly_values,
             value=1)
 
     def __str__(self):
