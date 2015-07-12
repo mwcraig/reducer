@@ -448,9 +448,10 @@ class CosmicRaySettingsWidget(gui.ToggleContainerWidget):
         display(self)
 
 
-class AxisSelectionWidget(widgets.Box):
+class AxisSelectionWidget(widgets.FlexBox):
     """docstring for AxisSelection"""
-    def __init__(self):
+    def __init__(self, *args, **kwd):
+        super(AxisSelectionWidget, self).__init__(*args, **kwd)
         values = OrderedDict()
         values["axis 0"] = 0
         values["axis 1"] = 1
