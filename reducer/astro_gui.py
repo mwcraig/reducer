@@ -34,6 +34,16 @@ class ReducerBase(gui.ToggleGoWidget):
     """
     Base class for reduction and combination widgets that provides a couple
     of properties common to both.
+
+    Parameters
+    ----------
+
+    apply_to : dict
+        Key-value pair(s) that select images that will be acted on by the
+        widget.
+
+    destination : str
+        Directory in which reduced images will be stored.
     """
     def __init__(self, *arg, **kwd):
         self._apply_to = kwd.pop('apply_to', None)
@@ -50,7 +60,10 @@ class ReducerBase(gui.ToggleGoWidget):
 
 
 class ReductionWidget(ReducerBase):
-    """docstring for ReductionWidget"""
+    """
+    Primary widget for performing a logical reduction step (e.g. dark
+    subtraction or flat correction).
+    """
     def __init__(self, *arg, **kwd):
         allow_flat = kwd.pop('allow_flat', True)
         allow_dark = kwd.pop('allow_dark', True)
