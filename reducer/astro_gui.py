@@ -368,7 +368,10 @@ class CombinerWidget(ReducerBase):
     def format(self):
         super(CombinerWidget, self).format()
         self._clipping_widget.format()
-        self.progress_bar.add_class('active progress-info progress-striped')
+        # self.progress_bar.add_class('active progress-info progress-striped')
+
+        # ADD STRIPES
+        self.progress_bar.bar_style = 'info'
 
     def action(self):
         self.progress_bar.visible = True
@@ -485,8 +488,10 @@ class AxisSelectionWidget(widgets.FlexBox):
         return self._stop.value
 
     def format(self):
-        self._start.set_css('width', '30px')
-        self._stop.set_css('width', '30px')
+        # self._start.set_css('width', '30px')
+        self._start.width = '30px'
+        # self._stop.set_css('width', '30px')
+        self._stop.width = '30px'
 
 
 class SliceWidget(gui.ToggleContainerWidget):

@@ -240,7 +240,8 @@ class ToggleMinMaxWidget(ToggleContainerWidget):
         for hbox in hbox_these:
             hbox.orientation = 'horizontal'
         for child in self.container.children:
-            child.set_css('width', '30px')
+            # child.set_css('width', '30px')
+            child.width = '30px'
 
     @property
     def min(self):
@@ -320,24 +321,50 @@ class ToggleGoWidget(ToggleContainerWidget):
                 child.format()
             except AttributeError:
                 pass
-        #self._clipping_widget.format()
-        self.container.set_css({'border': '1px grey solid',
-                                'border-radius': '10px'})
-        self.container.set_css('width', '100%')
-        self.container.set_css('padding', '5px')
-        self._toggle_container.set_css('width', '100%')
-        self._checkbox.set_css('width', '100%')
-        self._go_container.set_css('padding', '5px')
-        self._go_container.set_css('width', '100%')
-        self._go_button.add_class('box-flex1')
-        self._change_settings.add_class('box-flex3')
-        self._go_button.add_class('btn-info')
-        self._change_settings.add_class('btn-inverse')
-        self._progress_container.set_css('width', '100%')
-        self._progress_bar.add_class('progress-info')
+        # self._clipping_widget.format()
+
+        # self.container.set_css({'border': '1px grey solid',
+        #                        'border-radius': '10px'})
+        self.container.border = '1px grey solid'
+        self.container.border_radius = '10px'
+
+        # self.container.set_css('width', '100%')
+        self.container.width = '100%'
+
+        # self.container.set_css('padding', '5px')
+        self.container.padding = '5px'
+
+        # self._toggle_container.set_css('width', '100%')
+        self._toggle_container.width = '100%'
+
+        # self._checkbox.set_css('width', '100%')
+        self._checkbox.width = '100%'
+
+        # self._go_container.set_css('padding', '5px')
+        self._go_button.padding = '5px'
+
+        # self._go_container.set_css('width', '100%')
+        self._go_container.width = '100%'
+
+        # self._go_button.add_class('box-flex1')
+        self._go_button.width = '70%'
+        # self._change_settings.add_class('box-flex3')
+        self._change_settings.width = '30%'
+
+        #self._go_button.add_class('btn-info')
+        self._go_button.button_style = 'info'
+        # self._change_settings.add_class('btn-inverse')
+
+        # self._progress_container.set_css('width', '100%')
+        self._progress_bar.width = '100%'
+
+        #self._progress_bar.add_class('progress-info')
+        self._progress_bar.bar_style = 'info'
+
         #self._progress_bar.set_css('width', '90%')
         for child in self._go_container.children:
-            child.set_css('margin', '5px')
+            # child.set_css('margin', '5px')
+            child.margin = '5px'
 
     @property
     def is_sane(self):
@@ -435,12 +462,15 @@ def set_color_for(a_widget):
     def set_color(name, value):
         if a_widget.toggle.value:
             if not a_widget.is_sane:
-                a_widget.toggle.remove_class('btn-success')
-                a_widget.toggle.add_class('btn-warning')
+                # a_widget.toggle.remove_class('btn-success')
+                # a_widget.toggle.add_class('btn-warning')
+                a_widget.toggle.button_style = 'warning'
             else:
-                a_widget.toggle.remove_class('btn-warning')
-                a_widget.toggle.add_class('btn-success')
+                # a_widget.toggle.remove_class('btn-warning')
+                # a_widget.toggle.add_class('btn-success')
+                a_widget.toggle.button_style = 'success'
         else:
             a_widget.toggle.remove_class('btn-success')
             a_widget.toggle.remove_class('btn-warning')
+            a_widget.toggle.button_style = None
     return set_color
