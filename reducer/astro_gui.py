@@ -496,9 +496,9 @@ class AxisSelectionWidget(widgets.FlexBox):
 
     def format(self):
         # self._start.set_css('width', '30px')
-        self._start.width = '30px'
+        self._start.width = '5em'
         # self._stop.set_css('width', '30px')
-        self._stop.width = '30px'
+        self._stop.width = '5em'
 
 
 class SliceWidget(gui.ToggleContainerWidget):
