@@ -342,7 +342,7 @@ class ToggleGoWidget(ToggleContainerWidget):
         self._checkbox.width = '100%'
 
         # self._go_container.set_css('padding', '5px')
-        self._go_button.padding = '5px'
+        self._go_container.padding = '5px'
 
         # self._go_container.set_css('width', '100%')
         self._go_container.width = '100%'
@@ -428,7 +428,7 @@ class ToggleGoWidget(ToggleContainerWidget):
             self.action()
 
             # change button should really only appear after the work is done.
-            self._go_button.width = '70%'
+            self._go_button.width = '68%'
             self._change_settings.visible = True
             self._change_settings.disabled = False
         return handler
