@@ -373,6 +373,13 @@ class CombinerWidget(ReducerBase):
         # ADD STRIPES
         self.progress_bar.bar_style = 'info'
 
+        # Yuck. _dom_classes is a tuple, so make it a list, append to it, then
+        # reset. Similar to the way add_child handles children.
+        old_dom_classes = list(self.progress_bar._dom_classes)
+        if 'prgress-striped' not in old_dom_classes:
+            old_dom_classes.append('progress-striped')
+            self.progress_bar._dom_classes = old_dom_classes
+
     def action(self):
         self.progress_bar.visible = True
         self.progress_bar.value = 1.0
