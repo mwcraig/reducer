@@ -348,7 +348,7 @@ class ToggleGoWidget(ToggleContainerWidget):
         self._go_container.width = '100%'
 
         # self._go_button.add_class('box-flex1')
-        self._go_button.width = '70%'
+        self._go_button.width = '100%'
         # self._change_settings.add_class('box-flex3')
         self._change_settings.width = '30%'
 
@@ -428,6 +428,7 @@ class ToggleGoWidget(ToggleContainerWidget):
             self.action()
 
             # change button should really only appear after the work is done.
+            self._go_button.width = '70%'
             self._change_settings.visible = True
             self._change_settings.disabled = False
         return handler
@@ -440,6 +441,7 @@ class ToggleGoWidget(ToggleContainerWidget):
             self.disabled = False
             self._go_button.disabled = False
             self._change_settings.visible = False
+            self._go_button.width = '100%'
         return handler
 
     def action(self):
