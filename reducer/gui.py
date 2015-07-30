@@ -354,7 +354,10 @@ class ToggleGoWidget(ToggleContainerWidget):
 
         #self._go_button.add_class('btn-info')
         self._go_button.button_style = 'info'
+
         # self._change_settings.add_class('btn-inverse')
+        # btn-inverse has been removed from Bootstrap 3.
+        self._change_settings.button_style = 'primary'
 
         # self._progress_container.set_css('width', '100%')
         self._progress_bar.width = '100%'
