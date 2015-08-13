@@ -5,7 +5,11 @@ from collections import OrderedDict
 import os
 from io import BytesIO
 
+# See below for special handling of Accordion
 from IPython.html import widgets
+from IPython import version_info
+from IPython.utils.traitlets import Unicode
+
 import numpy as np
 
 from astropy.io import fits
@@ -20,6 +24,17 @@ __all__ = [
     'ImageBrowserWidget',
     'ndarray_to_png',
 ]
+
+major, minor, patch, _ = version_info
+if major == 3 or (major == 4 and minor == 0 and patch <= 2):
+    # Use my accordion js
+    class Accordion(widgets.Accordion):
+
+        _view_module = Unicode("nbextensions/accordion_replacement/accordion_patch", sync=True)
+        _view_name = Unicode("AccordionView", sync=True)
+else:
+    class Accordion(widgets.Accordion):
+        pass
 
 
 class ImageTreeWidget(object):
@@ -40,6 +55,7 @@ class ImageTreeWidget(object):
         self._gui_objects = OrderedDict()
         self._top = None
         self._create_gui()
+        self._set_titles()
 
     @property
     def top(self):
@@ -109,16 +125,20 @@ class ImageTreeWidget(object):
             except IndexError:
                 key = ''
             if depth == 0:
-                self._top = widgets.Accordion(description=key)
+                self._top = Accordion(description=key)
+                self._top.selected_index = -1
                 self._gui_objects[parent_string] = self._top
 
             parent = self._gui_objects[parent_string]
-            # Do I have a children? If so, add them as tabs
+
+            # Do I have children? If so, add them as sub-accordions
             if children:
                 child_objects = []
                 for child in children:
                     desc = ": ".join([key, str(child)])
-                    child_container = widgets.Accordion(description=desc)
+                    child_container = Accordion(description=desc)
+                    # Make sure all panels start out closed.
+                    child_container.selected_index = -1
                     child_container.parent = self._gui_objects[parent_string]
                     child_string = os.path.join(parent_string, str(child))
                     self._gui_objects[child_string] = child_container
@@ -129,6 +149,14 @@ class ImageTreeWidget(object):
                 new_text = widgets.Select(options=index)
                 index_string = self._id_string([parent_string, 'files'])
                 self._gui_objects[index_string] = new_text
+
+                # On the last pass an Accordion will have been created for
+                # this item. We need to replace that Accordion with a Select.
+                # The Select should be inside a box so that we can set a
+                # description on the box that won't be displayed on the
+                # Select. When titles are built for the image viewer tree
+                # later on they are based on the description of the Accordions
+                # and their immediate children.
                 old_parent = parent
                 grandparent = old_parent.parent
                 desc = old_parent.description
@@ -136,6 +164,8 @@ class ImageTreeWidget(object):
                 n_files = len(index)
                 desc += " ({0} image{1})".format(n_files,
                                                  s_or_not[n_files > 1])
+
+                # Place the box between the Select and the parent Accordion
                 parent = widgets.Box(description=desc)
                 parent.children = [new_text]
                 parent.parent = grandparent
@@ -147,21 +177,24 @@ class ImageTreeWidget(object):
         """
         from IPython.display import display
         display(self._top)
-        self.format()
 
-    def format(self):
+    def _set_titles(self):
         """
-        Format widget.
+        Set titles for accordions.
 
-        Must be called after the widget is displayed, and is automatically
-        called by the `display` method.
+        This should apparently be done *before* the widget is displayed.
         """
-        #self._top.set_css({'width': '50%'})
         for name, obj in self._gui_objects.iteritems():
-            if isinstance(obj, widgets.Accordion):
+            if isinstance(obj, Accordion):
                 for idx, child in enumerate(obj.children):
                     if not isinstance(child, widgets.Select):
                         obj.set_title(idx, child.description)
+
+    def format(self):
+        """
+        This gets called by the ImageBrowserWidget so don't delete it.
+        """
+        pass
 
 
 def ndarray_to_png(x):
