@@ -2,6 +2,14 @@ from setuptools import setup, find_packages
 from setuptools.command.test import test as TestCommand
 import sys
 
+try:
+    from jupyterpip import cmdclass
+except:
+    import pip
+    import importlib
+    pip.main(['install', 'jupyter-pip'])
+    cmdclass = importlib.import_module('jupyterpip').cmdclass
+
 
 class PyTest(TestCommand):
     def finalize_options(self):
@@ -16,7 +24,7 @@ class PyTest(TestCommand):
 
 INSTALL_REQUIRES = ['astropy>=1.0', 'numpy', 'scipy', 'pillow',
                     'ipython >3.0', 'msumastro>=0.8', 'ccdproc>=0.3',
-                    'matplotlib']
+                    'matplotlib', 'jupyter-pip']
 
 
 setup(
@@ -35,7 +43,7 @@ setup(
         'docs': ['numpydoc', 'sphinx-argparse', 'sphinx_rtd_theme'],
     },
     tests_require=['pytest>1.4'] + INSTALL_REQUIRES,
-    cmdclass={'test': PyTest},
+    cmdclass=cmdclass('accordion_replacement'), #{'test': PyTest, ''},
     entry_points={
         'console_scripts': [
             ('reducer = '
