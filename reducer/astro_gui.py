@@ -5,14 +5,19 @@ from collections import OrderedDict
 import os
 import warnings
 
-from IPython.html import widgets
-
 from astropy.modeling import models
 import ccdproc
 
 import numpy as np
 
 from . import gui
+from .ipython_version_helper import ipython_version_as_string
+
+if ipython_version_as_string().startswith('3'):
+    from IPython.html import widgets
+else:
+    import ipywidgets as widgets
+
 
 __all__ = [
     'ReductionWidget',

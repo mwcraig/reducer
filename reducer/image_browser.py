@@ -6,8 +6,6 @@ import os
 from io import BytesIO
 
 # See below for special handling of Accordion
-from IPython.html import widgets
-from IPython import version_info
 from IPython.utils.traitlets import Unicode
 
 import numpy as np
@@ -17,6 +15,7 @@ from astropy.io import fits
 import msumastro
 
 from .notebook_dir import get_data_path
+from .ipython_version_helper import ipython_version_as_string
 
 __all__ = [
     'ImageTreeWidget',
@@ -25,8 +24,15 @@ __all__ = [
     'ndarray_to_png',
 ]
 
-major, minor, patch, _ = version_info
-if major == 3 or (major == 4 and minor == 0 and patch <= 2):
+ipython_version = ipython_version_as_string()
+
+if ipython_version.startswith('3'):
+    from IPython.html import widgets
+else:
+    import ipywidgets as widgets
+
+if (ipython_version.startswith('3') or
+    (int(ipython_version) <= 402)):
     # Use my accordion js
     class Accordion(widgets.Accordion):
 
@@ -356,7 +362,7 @@ class ImageBrowserWidget(widgets.FlexBox):
         self._fits_display.format()
 
         # self.tree_widget.add_class('box-flex1')
-        self.tree_widget.width = '33%'
+        self.tree_widget.width = '20em'
         # self.fits_display.add_class('box-flex2')
         self.fits_display.width = '67%'
         for child in self.children:
