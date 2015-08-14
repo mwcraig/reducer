@@ -9,14 +9,14 @@ else:
     import ipywidgets as widgets
 
 __all__ = [
-    'ToggleContainerWidget',
-    'ToggleMinMaxWidget',
-    'ToggleGoWidget',
+    'ToggleContainer',
+    'ToggleMinMax',
+    'ToggleGo',
     'set_color_for',
 ]
 
 
-class ToggleContainerWidget(widgets.FlexBox):
+class ToggleContainer(widgets.FlexBox):
     """
     A widget whose state controls the visibility of its chilren.
 
@@ -24,7 +24,7 @@ class ToggleContainerWidget(widgets.FlexBox):
     ----------
 
     Same as parameters for a `~IPython.html.widgets.Box`, but
-    note that the description of the ToggleContainerWidget is used to set the
+    note that the description of the ToggleContainer is used to set the
     description of the checkbox that controls the display, AND
 
     toggle_type : {'checkbox', 'button'}, optional
@@ -46,8 +46,8 @@ class ToggleContainerWidget(widgets.FlexBox):
     Notes
     -----
 
-    Do *NOT* set the children of the ToggleContainerWidget; set the children
-    of ``ToggleContainerWidget.children`` or use the `add_child` method.
+    Do *NOT* set the children of the ToggleContainer; set the children
+    of ``ToggleContainer.children`` or use the `add_child` method.
     """
     def __init__(self, *args, **kwd):
         toggle_types = {'checkbox': widgets.Checkbox,
@@ -56,7 +56,7 @@ class ToggleContainerWidget(widgets.FlexBox):
         if toggle_type not in toggle_types:
             raise ValueError('toggle_type must be one of '
                              '{}'.format(toggle_type.keys()))
-        super(ToggleContainerWidget, self).__init__(*args, **kwd)
+        super(ToggleContainer, self).__init__(*args, **kwd)
         self._toggle_container = widgets.Box(description='toggle holder')
         self._checkbox = toggle_types[toggle_type](description=self.description)
         self._toggle_container.children = [self._checkbox]
@@ -196,8 +196,8 @@ class ToggleContainerWidget(widgets.FlexBox):
         # value_name key. Seems inconsistent with the rest of the
         # widgets, but whatever...
 
-        if isinstance(child, ToggleContainerWidget):
-            # If the child is a ToggleContainerWidget we only need to link in
+        if isinstance(child, ToggleContainer):
+            # If the child is a ToggleContainer we only need to link in
             # to its _state_monitor because it will take care hooking up the
             # things in the container to its _state_monitor.
             child._state_monitor.on_trait_change(self._ping_handler(),
@@ -221,7 +221,7 @@ class ToggleContainerWidget(widgets.FlexBox):
         return flip_state
 
 
-class ToggleMinMaxWidget(ToggleContainerWidget):
+class ToggleMinMax(ToggleContainer):
     """
     Widget for setting a minimum and maximum integer value, controlled by
     a toggle.
@@ -233,14 +233,14 @@ class ToggleMinMaxWidget(ToggleContainerWidget):
         Text to be displayed in the toggle.
     """
     def __init__(self, *args, **kwd):
-        super(ToggleMinMaxWidget, self).__init__(*args, **kwd)
+        super(ToggleMinMax, self).__init__(*args, **kwd)
         self._min_box = widgets.FloatText(description="Low threshold")
         self._max_box = widgets.FloatText(description="High threshold")
         self.add_child(self._min_box)
         self.add_child(self._max_box)
 
     def format(self):
-        super(ToggleMinMaxWidget, self).format()
+        super(ToggleMinMax, self).format()
         hbox_these = [self, self.container]
         for hbox in hbox_these:
             hbox.orientation = 'horizontal'
@@ -272,9 +272,9 @@ class ToggleMinMaxWidget(ToggleContainerWidget):
             base += '\n' + '\n'.join(indented_kids)
         return base
 
-class ToggleGoWidget(ToggleContainerWidget):
+class ToggleGo(ToggleContainer):
     """
-    ToggleContainerWidget whose state is linked to a button.
+    ToggleContainer whose state is linked to a button.
 
     The intent is for that button to be activated when the contents
     of the container are in a "sane" state.
@@ -282,7 +282,7 @@ class ToggleGoWidget(ToggleContainerWidget):
     def __init__(self, *args, **kwd):
         from IPython.utils.traitlets import link
 
-        super(ToggleGoWidget, self).__init__(*args, **kwd)
+        super(ToggleGo, self).__init__(*args, **kwd)
         self._go_container = widgets.HBox(visible=self.toggle.value)
         self._go_button = widgets.Button(description="Lock settings and Go!",
                                          disabled=True, visible=False)
@@ -320,7 +320,7 @@ class ToggleGoWidget(ToggleContainerWidget):
         """
         Format the widget; must be invoked after displaying the widget.
         """
-        super(ToggleGoWidget, self).format()
+        super(ToggleGo, self).format()
         for child in self.container.children:
             try:
                 child.format()

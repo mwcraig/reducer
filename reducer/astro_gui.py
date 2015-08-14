@@ -20,22 +20,22 @@ else:
 
 
 __all__ = [
-    'ReductionWidget',
-    'CombinerWidget',
-    'CosmicRaySettingsWidget',
-    'SliceWidget',
-    'CalibrationStepWidget',
-    'BiasSubtractWidget',
-    'DarkSubtractWidget',
-    'FlatCorrectWidget',
-    'OverscanWidget',
-    'TrimWidget'
+    'Reduction',
+    'Combiner',
+    'CosmicRaySettings',
+    'Slice',
+    'CalibrationStep',
+    'BiasSubtract',
+    'DarkSubtract',
+    'FlatCorrect',
+    'Overscan',
+    'Trim'
 ]
 
 DEFAULT_IMAGE_UNIT = "adu"
 
 
-class ReducerBase(gui.ToggleGoWidget):
+class ReducerBase(gui.ToggleGo):
     """
     Base class for reduction and combination widgets that provides a couple
     of properties common to both.
@@ -64,7 +64,7 @@ class ReducerBase(gui.ToggleGoWidget):
         return self._apply_to
 
 
-class ReductionWidget(ReducerBase):
+class Reduction(ReducerBase):
     """
     Primary widget for performing a logical reduction step (e.g. dark
     subtraction or flat correction).
@@ -75,13 +75,13 @@ class ReductionWidget(ReducerBase):
         allow_bias = kwd.pop('allow_bias', True)
         self.image_collection = kwd.pop('input_image_collection', None)
         self._master_source = kwd.pop('master_source', None)
-        super(ReductionWidget, self).__init__(*arg, **kwd)
-        self._overscan = OverscanWidget(description='Subtract overscan?')
-        self._trim = TrimWidget(description='Trim (specify region to keep)?')
-        self._cosmic_ray = CosmicRaySettingsWidget()
-        self._bias_calib = BiasSubtractWidget(master_source=self._master_source)
-        self._dark_calib = DarkSubtractWidget(master_source=self._master_source)
-        self._flat_calib = FlatCorrectWidget(master_source=self._master_source)
+        super(Reduction, self).__init__(*arg, **kwd)
+        self._overscan = Overscan(description='Subtract overscan?')
+        self._trim = Trim(description='Trim (specify region to keep)?')
+        self._cosmic_ray = CosmicRaySettings()
+        self._bias_calib = BiasSubtract(master_source=self._master_source)
+        self._dark_calib = DarkSubtract(master_source=self._master_source)
+        self._flat_calib = FlatCorrect(master_source=self._master_source)
         self.add_child(self._overscan)
         self.add_child(self._trim)
         self.add_child(self._cosmic_ray)
@@ -147,12 +147,12 @@ class ReductionWidget(ReducerBase):
         self._reduced_images = reduced_images
 
 
-class ClippingWidget(gui.ToggleContainerWidget):
-    """docstring for ClippingWidget"""
+class Clipping(gui.ToggleContainer):
+    """docstring for Clipping"""
     def __init__(self, *args, **kwd):
-        super(ClippingWidget, self).__init__(*args, **kwd)
-        self._min_max = gui.ToggleMinMaxWidget(description="Clip by min/max?")
-        self._sigma_clip = gui.ToggleMinMaxWidget(description="Sigma clip?")
+        super(Clipping, self).__init__(*args, **kwd)
+        self._min_max = gui.ToggleMinMax(description="Clip by min/max?")
+        self._sigma_clip = gui.ToggleMinMax(description="Sigma clip?")
         self.add_child(self._min_max)
         self.add_child(self._sigma_clip)
 
@@ -197,7 +197,7 @@ class ClippingWidget(gui.ToggleContainerWidget):
         return sanity
 
     def format(self):
-        super(ClippingWidget, self).format()
+        super(Clipping, self).format()
         self._sigma_clip.format()
         self._min_max.format()
 
@@ -233,19 +233,19 @@ def override_str_factory(obj):
     return new_instance
 
 
-class CombineWidget(gui.ToggleContainerWidget):
+class Combine(gui.ToggleContainer):
     """
     Represent combine choices and actions.
     """
     def __init__(self, *args, **kwd):
-        super(CombineWidget, self).__init__(*args, **kwd)
+        super(Combine, self).__init__(*args, **kwd)
         self._combine_option = override_str_factory(
             widgets.ToggleButtons(description="Combination method:",
                                         options=['Average', 'Median'])
         )
 
         self.add_child(self._combine_option)
-        self._scaling = gui.ToggleContainerWidget(description="Scale before combining?")
+        self._scaling = gui.ToggleContainer(description="Scale before combining?")
         scal_desc = "Which property should scale to same value?"
         self._scale_by = override_str_factory(
             widgets.RadioButtons(description=scal_desc,
@@ -276,11 +276,11 @@ class CombineWidget(gui.ToggleContainerWidget):
             return True
 
 
-class GroupByWidget(gui.ToggleContainerWidget):
+class GroupBy(gui.ToggleContainer):
     def __init__(self, *args, **kwd):
         self._image_source = kwd.pop('image_source', None)
         input_value = kwd.pop('value', '')
-        super(GroupByWidget, self).__init__(*args, **kwd)
+        super(GroupBy, self).__init__(*args, **kwd)
         self._keyword_list = override_str_factory(
             widgets.Text(description='Keywords (comma-separated)',
                                value=input_value)
@@ -319,7 +319,7 @@ class GroupByWidget(gui.ToggleContainerWidget):
         return group_list
 
 
-class CombinerWidget(ReducerBase):
+class Combiner(ReducerBase):
     """
     Widget for displaying options for ccdproc.Combiner.
 
@@ -333,16 +333,16 @@ class CombinerWidget(ReducerBase):
         group_by_in = kwd.pop('group_by', '')
         self._image_source = kwd.pop('image_source', None)
         self._file_base_name = kwd.pop('file_name_base', 'master')
-        super(CombinerWidget, self).__init__(*args, **kwd)
+        super(Combiner, self).__init__(*args, **kwd)
         self._clipping_widget = \
-            ClippingWidget(description="Clip before combining?")
+            Clipping(description="Clip before combining?")
         self._combine_method = \
-            CombineWidget(description="Combine images?")
+            Combine(description="Combine images?")
 
         self.add_child(self._clipping_widget)
         self.add_child(self._combine_method)
 
-        self._group_by = GroupByWidget(description='Group by:',
+        self._group_by = GroupBy(description='Group by:',
                                        value=group_by_in,
                                        image_source=self._image_source)
         self.add_child(self._group_by)
@@ -363,7 +363,7 @@ class CombinerWidget(ReducerBase):
     @property
     def is_sane(self):
         # Start with the default sanity determination...
-        sanity = super(CombinerWidget, self).is_sane
+        sanity = super(Combiner, self).is_sane
         # ...but flip to insane if neither clipping nor combination is
         # selected.
         sanity = sanity and (self._clipping_widget.toggle.value
@@ -371,7 +371,7 @@ class CombinerWidget(ReducerBase):
         return sanity
 
     def format(self):
-        super(CombinerWidget, self).format()
+        super(Combiner, self).format()
         self._clipping_widget.format()
         # self.progress_bar.add_class('active progress-info progress-striped')
 
@@ -447,11 +447,11 @@ class CombinerWidget(ReducerBase):
         return combined
 
 
-class CosmicRaySettingsWidget(gui.ToggleContainerWidget):
+class CosmicRaySettings(gui.ToggleContainer):
     def __init__(self, *args, **kwd):
         descript = kwd.pop('description', 'Clean cosmic rays?')
         kwd['description'] = descript
-        super(CosmicRaySettingsWidget, self).__init__(*args, **kwd)
+        super(CosmicRaySettings, self).__init__(*args, **kwd)
         cr_choices = override_str_factory(
             widgets.Dropdown(description='Method:',
                                    options=['median [not connected yet]', 'LACosmic [coming soon]'])
@@ -463,10 +463,10 @@ class CosmicRaySettingsWidget(gui.ToggleContainerWidget):
         display(self)
 
 
-class AxisSelectionWidget(widgets.FlexBox):
+class AxisSelection(widgets.FlexBox):
     """docstring for AxisSelection"""
     def __init__(self, *args, **kwd):
-        super(AxisSelectionWidget, self).__init__(*args, **kwd)
+        super(AxisSelection, self).__init__(*args, **kwd)
         values = OrderedDict()
         values["axis 0"] = 0
         values["axis 1"] = 1
@@ -506,17 +506,17 @@ class AxisSelectionWidget(widgets.FlexBox):
         self._stop.width = '5em'
 
 
-class SliceWidget(gui.ToggleContainerWidget):
+class Slice(gui.ToggleContainer):
     def __init__(self, *arg, **kwd):
         self.images = kwd.pop('images', [])
-        super(SliceWidget, self).__init__(*arg, **kwd)
-        self._axis_selection = AxisSelectionWidget()
+        super(Slice, self).__init__(*arg, **kwd)
+        self._axis_selection = AxisSelection()
         self.add_child(self._axis_selection)
         for child in self._axis_selection.children:
             self._child_notify_parent_on_change(child)
 
     def format(self):
-        super(SliceWidget, self).format()
+        super(Slice, self).format()
         hbox_these = [self._axis_selection]  # [self, self.container]
         for hbox in hbox_these:
             hbox.orientation = 'horizontal'
@@ -528,7 +528,7 @@ class SliceWidget(gui.ToggleContainerWidget):
         Determine whether combination of settings is at least remotely
         plausible.
         """
-        # If the SliceWidget is not selected, return None
+        # If the Slice is not selected, return None
         if not self.toggle.value:
             return None
         # Stop value must be larger than start (i.e. slice must contain at
@@ -562,7 +562,7 @@ class MasterImageSource(widgets.Box):
         return file_visibility
 
 
-class CalibrationStepWidget(gui.ToggleContainerWidget):
+class CalibrationStep(gui.ToggleContainer):
     """
     Represents a calibration step that corresponds to a ccdproc command.
 
@@ -573,7 +573,7 @@ class CalibrationStepWidget(gui.ToggleContainerWidget):
     """
     def __init__(self, *args, **kwd):
         self._master_source = kwd.pop('master_source', None)
-        super(CalibrationStepWidget, self).__init__(*args, **kwd)
+        super(CalibrationStep, self).__init__(*args, **kwd)
         self._settings = MasterImageSource()
         self.add_child(self._settings)
 
@@ -648,14 +648,14 @@ class CalibrationStepWidget(gui.ToggleContainerWidget):
             return self._image_cache[path]
 
 
-class BiasSubtractWidget(CalibrationStepWidget):
+class BiasSubtract(CalibrationStep):
     """
     Subtract bias from an image using widget settings.
     """
     def __init__(self, bias_image=None, **kwd):
         desc = kwd.pop('description', 'Subtract bias?')
         kwd['description'] = desc
-        super(BiasSubtractWidget, self).__init__(**kwd)
+        super(BiasSubtract, self).__init__(**kwd)
 
     def action(self, ccd):
         select_dict = {'imagetyp': 'bias'}
@@ -683,14 +683,14 @@ class DarkScaleSetting(widgets.Box):
         return str(self._scale)
 
 
-class DarkSubtractWidget(CalibrationStepWidget):
+class DarkSubtract(CalibrationStep):
     """
     Subtract dark from an image using widget settings.
     """
     def __init__(self, bias_image=None, **kwd):
         desc = kwd.pop('description', 'Subtract Dark?')
         kwd['description'] = desc
-        super(DarkSubtractWidget, self).__init__(**kwd)
+        super(DarkSubtract, self).__init__(**kwd)
         self.match_on = ['exposure']
         self._scale = DarkScaleSetting()
         self.add_child(self._scale)
@@ -715,14 +715,14 @@ class DarkSubtractWidget(CalibrationStepWidget):
                                      scale=self._scale.scale)
 
 
-class FlatCorrectWidget(CalibrationStepWidget):
+class FlatCorrect(CalibrationStep):
     """
     Subtract dark from an image using widget settings.
     """
     def __init__(self, bias_image=None, **kwd):
         desc = kwd.pop('description', 'Flat correct?')
         kwd['description'] = desc
-        super(FlatCorrectWidget, self).__init__(**kwd)
+        super(FlatCorrect, self).__init__(**kwd)
         self.match_on = ['filter']
 
     def action(self, ccd):
@@ -735,14 +735,14 @@ class FlatCorrectWidget(CalibrationStepWidget):
         return ccdproc.flat_correct(ccd, master)
 
 
-class PolynomialDropdownWidget(widgets.Dropdown):
+class PolynomialDropdown(widgets.Dropdown):
     def __init__(self):
         poly_values = OrderedDict()
         poly_values["Order 0/one term (constant)"] = 1
         poly_values["Order 1/two term (linear)"] = 2
         poly_values["Order 2/three team (quadratic)"] = 3
         poly_values["Are you serious? Higher order is silly."] = None
-        super(PolynomialDropdownWidget, self).__init__(
+        super(PolynomialDropdown, self).__init__(
             description="Choose fit",
             options=poly_values,
             value=1)
@@ -753,18 +753,18 @@ class PolynomialDropdownWidget(widgets.Dropdown):
                 return k
 
 
-class OverscanWidget(SliceWidget):
-    """docstring for OverscanWidget"""
+class Overscan(Slice):
+    """docstring for Overscan"""
     def __init__(self, *arg, **kwd):
-        super(OverscanWidget, self).__init__(*arg, **kwd)
+        super(Overscan, self).__init__(*arg, **kwd)
         poly_desc = "Fit polynomial to overscan?"
-        self._polyfit = gui.ToggleContainerWidget(description=poly_desc)
-        poly_dropdown = PolynomialDropdownWidget()
+        self._polyfit = gui.ToggleContainer(description=poly_desc)
+        poly_dropdown = PolynomialDropdown()
         self._polyfit.add_child(poly_dropdown)
         self.add_child(self._polyfit)
 
     def format(self):
-        super(OverscanWidget, self).format()
+        super(Overscan, self).format()
         self._polyfit.format()
         self._polyfit.orientation = 'horizontal'
 
@@ -774,8 +774,8 @@ class OverscanWidget(SliceWidget):
         if not self.toggle.value:
             return None
 
-        # See what the SliceWidget thinks....
-        sanity = super(OverscanWidget, self).is_sane
+        # See what the Slice thinks....
+        sanity = super(Overscan, self).is_sane
         if self._polyfit.toggle.value:
             poly_dropdown = self._polyfit.container.children[0]
             sanity = sanity and (poly_dropdown.value is not None)
@@ -825,12 +825,12 @@ class OverscanWidget(SliceWidget):
         return reduced
 
 
-class TrimWidget(SliceWidget):
+class Trim(Slice):
     """
     Controls and action for trimming a widget.
     """
     def __init__(self, *arg, **kwd):
-        super(TrimWidget, self).__init__(*arg, **kwd)
+        super(Trim, self).__init__(*arg, **kwd)
         # TODO: remove the line below sooner rather than later.
         self._axis_selection._stop.value = 3073
 

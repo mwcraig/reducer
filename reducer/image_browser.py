@@ -18,9 +18,9 @@ from .notebook_dir import get_data_path
 from .ipython_version_helper import ipython_version_as_string
 
 __all__ = [
-    'ImageTreeWidget',
-    'FitsViewerWidget',
-    'ImageBrowserWidget',
+    'ImageTree',
+    'FitsViewer',
+    'ImageBrowser',
     'ndarray_to_png',
 ]
 
@@ -43,7 +43,7 @@ else:
         pass
 
 
-class ImageTreeWidget(object):
+class ImageTree(object):
     """
     Create a tree view of a collection of images.
 
@@ -198,7 +198,7 @@ class ImageTreeWidget(object):
 
     def format(self):
         """
-        This gets called by the ImageBrowserWidget so don't delete it.
+        This gets called by the ImageBrowser so don't delete it.
         """
         pass
 
@@ -224,7 +224,7 @@ def ndarray_to_png(x):
     return img_buffer.getvalue()
 
 
-class FitsViewerWidget(object):
+class FitsViewer(object):
     """
     Display the image and header from a single FITS file.
 
@@ -304,7 +304,7 @@ class FitsViewerWidget(object):
         return set_fits_file
 
 
-class ImageBrowserWidget(widgets.FlexBox):
+class ImageBrowser(widgets.FlexBox):
     """
     Browse a tree of FITS images and view image/header.
 
@@ -318,9 +318,9 @@ class ImageBrowserWidget(widgets.FlexBox):
         self._directory = kwd.pop('directory', '.')
         self._demo = kwd.pop('demo', True)
         kwd['orientation'] = 'horizontal'
-        super(ImageBrowserWidget, self).__init__(*args, **kwd)
-        self._tree_widget = ImageTreeWidget(tree)
-        self._fits_display = FitsViewerWidget()
+        super(ImageBrowser, self).__init__(*args, **kwd)
+        self._tree_widget = ImageTree(tree)
+        self._fits_display = FitsViewer()
         self._fits_display.top.visible = False
         self.children = [self.tree_widget, self.fits_display]
         # Connect the select boxes to the image displayer
