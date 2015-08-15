@@ -330,7 +330,7 @@ class ToggleGo(ToggleContainer):
         # self.container.set_css({'border': '1px grey solid',
         #                        'border-radius': '10px'})
         self.container.border_width = '1px'
-        self.container.border_color = 'grey'
+        self.container.border_color = 'gray'
         self.container.border_radius = '10px'
 
         # self.container.set_css('width', '100%')
