@@ -5,8 +5,10 @@ from .ipython_version_helper import ipython_version_as_string
 
 if ipython_version_as_string().startswith('3'):
     from IPython.html import widgets
+    from IPython.utils.traitlets import link
 else:
     import ipywidgets as widgets
+    from traitlets import link
 
 __all__ = [
     'ToggleContainer',
@@ -100,7 +102,6 @@ class ToggleContainer(widgets.FlexBox):
         """
         Links the visible property of the container to the toggle value.
         """
-        from IPython.utils.traitlets import link
         link((self._checkbox, str('value')), (self._container, str('visible')))
 
     @property
@@ -280,8 +281,6 @@ class ToggleGo(ToggleContainer):
     of the container are in a "sane" state.
     """
     def __init__(self, *args, **kwd):
-        from IPython.utils.traitlets import link
-
         super(ToggleGo, self).__init__(*args, **kwd)
         self._go_container = widgets.HBox(visible=self.toggle.value)
         self._go_button = widgets.Button(description="Lock settings and Go!",

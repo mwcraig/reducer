@@ -5,9 +5,6 @@ from collections import OrderedDict
 import os
 from io import BytesIO
 
-# See below for special handling of Accordion
-from IPython.utils.traitlets import Unicode
-
 import numpy as np
 
 from astropy.io import fits
@@ -28,8 +25,10 @@ ipython_version = ipython_version_as_string()
 
 if ipython_version.startswith('3'):
     from IPython.html import widgets
+    from IPython.utils.traitlets import Unicode
 else:
     import ipywidgets as widgets
+    from traitlets import Unicode
 
 if (ipython_version.startswith('3') or
     (int(ipython_version) <= 402)):
