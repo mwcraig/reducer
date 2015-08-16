@@ -3,6 +3,7 @@ scipy
 pillow
 astropy
 jupyter>3
+ipython>=4
 matplotlib
 msumastro>=0.8
 ccdproc>0.3
