@@ -1,0 +1,9 @@
+numpy
+scipy
+pillow
+astropy
+jupyter>3
+matplotlib
+msumastro>=0.8
+ccdproc>0.3
+jupyter-pip
