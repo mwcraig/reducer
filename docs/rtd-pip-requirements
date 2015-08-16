@@ -1,4 +1,6 @@
 numpy
+scipy
+matplotlib
 pillow
 astropy
 jupyter
