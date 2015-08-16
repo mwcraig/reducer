@@ -2,10 +2,10 @@ numpy
 scipy
 pillow
 astropy
-jupyter>3
-ipython>=4
+jupyter
+ipython
 matplotlib
-msumastro>=0.8
-ccdproc>0.3
+msumastro
+ccdproc
 jupyter-pip
 astropy-helpers
