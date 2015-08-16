@@ -1,5 +1,4 @@
 numpy
-scipy==0.13.3
 pillow
 astropy
 jupyter
