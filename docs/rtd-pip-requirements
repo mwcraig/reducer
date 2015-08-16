@@ -4,7 +4,6 @@ pillow
 astropy
 jupyter
 ipython
-matplotlib
 msumastro
 ccdproc
 jupyter-pip
