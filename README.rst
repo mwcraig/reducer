@@ -1,15 +1,7 @@
 This package provides an ipython notebook for reducing and doing
 stellar photometry on CCD data.
 
-New to python? Start here
-=========================
-
-Getting started with python can be intimidating; if you have questions please
-`contact me <mailto:mcraig@mnstate.edu>`_!
-
-To actually run this tool it is easiest to install the
-`anaconda python distribution <http://continuum.io/downloads>`_. It will
-*not* interfere in any way with other python installations you have.
+Documentation is at: https://reducer.readthedocs.org
 
 Please provide feedback
 =======================
@@ -81,5 +73,3 @@ together a couple related packages:
    reduction.
 -  `astropy <http://github.com/astropy>`__ for lots of the underlying
    structure .
-
-If you are interested in
