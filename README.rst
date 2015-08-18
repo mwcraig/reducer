@@ -15,6 +15,14 @@ so you can make an issue :)).
 Installation
 ============
 
+.. note::
+
+    Version 0.2 and higher of reducer works with IPython 3 and 4.
+    Version 0.1 works with IPython 2.
+
+    No improvements to ``reducer`` will be backported to
+    version 0.1.x/IPython 2. Feel free to fork if you need that!
+
 You need python (2.7, or 3.4 or higher) and the `SciPy
 stack <http://scipy.org>`__. The easiest way to the get the full stack
 is from a distribution like `anaconda <http://continuum.io>`__.
