@@ -29,5 +29,5 @@ information, so it shouldn't be too hard to identify the Landolt stars.
 
 .. _the mechanics of getting started: http://astro-research-setup.readthedocs.org/en/latest/
 .. _Feder Observatory: http://astronomy.mnstate.edu/Feder_Observatory/
-.. _download it here: http://goo.gl/b9t5hk
+.. _download it here: http://physics.mnstate.edu/craig/2013-07-03.zip
 .. _reducer: http://reducer.readthedocs.org/
