@@ -6,7 +6,7 @@
 .. highlight:: python
    :linenothreshold: 5
 
-reducer: Friendly astronmical image reduction
+reducer: Friendly astronomical image reduction
 =============================================
 
 Want to use reducer in a class?
