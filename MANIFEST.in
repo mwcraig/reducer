@@ -1,2 +1,3 @@
 include README.rst
 recursive-include reducer reducer-template.ipynb  *.tbz2
+include accordion_replacement/accordion_patch.js
