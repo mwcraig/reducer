@@ -29,7 +29,7 @@ INSTALL_REQUIRES = ['astropy>=1.0', 'numpy', 'scipy', 'pillow',
 
 setup(
     name='reducer',
-    version='0.2.1',
+    version='0.3.dev',
     description='Process FITS files',
     url='http://reducer.readthedocs.org',
     long_description=(open('README.rst').read()),
