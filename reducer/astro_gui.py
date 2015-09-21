@@ -7,6 +7,7 @@ import warnings
 
 from astropy.modeling import models
 import ccdproc
+from astropy.extern import six
 
 import numpy as np
 
@@ -401,7 +402,7 @@ class Combiner(ReducerBase):
                  "(may take several minutes)".format(idx + 1, n_groups))
             combined = self._action_for_one_group(combo_group)
             name_addons = ['_'.join([str(k), str(v)])
-                           for k, v in combo_group.iteritems()]
+                           for k, v in six.iteritems(combo_group)]
             fname = [self._file_base_name]
             fname.extend(name_addons)
             fname = '_'.join(fname) + '.fit'
@@ -748,7 +749,7 @@ class PolynomialDropdown(widgets.Dropdown):
             value=1)
 
     def __str__(self):
-        for k, v in self.values.iteritems():
+        for k, v in six.iteritems(self.values):
             if v == self.value:
                 return k
 
