@@ -8,6 +8,7 @@ from io import BytesIO
 import numpy as np
 
 from astropy.io import fits
+from astropy.extern import six
 
 import msumastro
 
@@ -189,7 +190,7 @@ class ImageTree(object):
 
         This should apparently be done *before* the widget is displayed.
         """
-        for name, obj in self._gui_objects.iteritems():
+        for name, obj in six.iteritems(self._gui_objects):
             if isinstance(obj, Accordion):
                 for idx, child in enumerate(obj.children):
                     if not isinstance(child, widgets.Select):
