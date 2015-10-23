@@ -124,7 +124,7 @@ class Reduction(ReducerBase):
                     unit = hdu.header['BUNIT']
                 except KeyError:
                     unit = DEFAULT_IMAGE_UNIT
-                ccd = ccdproc.CCDData(data=hdu.data, meta=hdu.header, unit=unit)
+                ccd = ccdproc.CCDData(hdu.data, meta=hdu.header, unit=unit)
 
                 for child in self.container.children:
                     if not child.toggle.value:
@@ -423,7 +423,7 @@ class Combiner(ReducerBase):
                 unit = hdu.header['BUNIT']
             except KeyError:
                 unit = DEFAULT_IMAGE_UNIT
-            images.append(ccdproc.CCDData(data=hdu.data,
+            images.append(ccdproc.CCDData(hdu.data,
                                           meta=hdu.header,
                                           unit=unit))
         combiner = ccdproc.Combiner(images, dtype=images[0].dtype)
