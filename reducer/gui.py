@@ -480,7 +480,7 @@ def set_color_for(a_widget):
                 # a_widget.toggle.add_class('btn-success')
                 a_widget.toggle.button_style = 'success'
         else:
-            a_widget.toggle.remove_class('btn-success')
-            a_widget.toggle.remove_class('btn-warning')
+            # a_widget.toggle.remove_class('btn-success')
+            # a_widget.toggle.remove_class('btn-warning')
             a_widget.toggle.button_style = None
     return set_color
