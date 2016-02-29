@@ -472,15 +472,9 @@ def set_color_for(a_widget):
     def set_color(name, value):
         if a_widget.toggle.value:
             if not a_widget.is_sane:
-                # a_widget.toggle.remove_class('btn-success')
-                # a_widget.toggle.add_class('btn-warning')
                 a_widget.toggle.button_style = 'warning'
             else:
-                # a_widget.toggle.remove_class('btn-warning')
-                # a_widget.toggle.add_class('btn-success')
                 a_widget.toggle.button_style = 'success'
         else:
-            # a_widget.toggle.remove_class('btn-success')
-            # a_widget.toggle.remove_class('btn-warning')
             a_widget.toggle.button_style = None
     return set_color
