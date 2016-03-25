@@ -50,5 +50,6 @@ Contents:
    :maxdepth: 1
 
    authors_for_sphinx
+   changelog
 
 .. _GitHub site for reducer: https://github.com/mwcraig/reducer

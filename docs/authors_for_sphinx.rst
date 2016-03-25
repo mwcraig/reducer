@@ -1,4 +1,4 @@
 Contributors
-************
+++++++++++++
 
 .. include:: ../CONTRIBUTORS.rst
