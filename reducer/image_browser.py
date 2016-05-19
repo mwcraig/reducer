@@ -213,7 +213,7 @@ def ndarray_to_png(x):
     aspect = shape[1]/shape[0]
     width = 600  # pixels
     new_shape = np.asarray(width/shape[0]*aspect*shape, dtype='int')
-    x = np.asarray(Image.fromarray(x).resize(new_shape))
+    x = np.asarray(Image.fromarray(x.astype('float32')).resize(new_shape))
     x = (x - x.mean()) / x.std()
     x[x >= 3] = 2.99
     x[x < -3] = -3.0
