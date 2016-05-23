@@ -1,4 +1,4 @@
-0.3 (unreleased)
+0.2.3 (unreleased)
 ----------------
 
 General
@@ -14,3 +14,4 @@ Bug fixes
 ^^^^^^^^^
 
 - Ensure unsigned int images can be displayed. [#115, #116]
+- Ensure that combined images can be written. [#117]
