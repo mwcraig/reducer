@@ -445,6 +445,8 @@ class Combiner(ReducerBase):
         combined.header['master'] = True
         if combined.data.dtype != images[0].dtype:
             combined.data = np.array(combined.data, dtype=images[0].dtype)
+        if isinstance(combined.uncertainty.array, np.ma.masked_array):
+            combined.uncertainty.array = np.array(combined.uncertainty.array)
         return combined
 
 
