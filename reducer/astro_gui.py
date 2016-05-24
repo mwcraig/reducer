@@ -125,7 +125,6 @@ class Reduction(ReducerBase):
                 except KeyError:
                     unit = DEFAULT_IMAGE_UNIT
                 ccd = ccdproc.CCDData(hdu.data, meta=hdu.header, unit=unit)
-
                 for child in self.container.children:
                     if not child.toggle.value:
                         # Nothing to do for this child, so keep going.
@@ -134,6 +133,18 @@ class Reduction(ReducerBase):
                 hdu_tmp = ccd.to_hdu()[0]
                 hdu.header = hdu_tmp.header
                 hdu.data = hdu_tmp.data
+
+                # Workaround to ensure uint16 images are handled properly.
+                if 'bzero' in hdu.header:
+                    # Check for the unsigned int16 case, and if our data type
+                    # is no longer uint16, delete BZERO and BSCALE
+                    header_unsigned_int = ((hdu.header['bscale'] == 1) and
+                                           (hdu.header['bzero'] == 32768))
+                    if (header_unsigned_int and
+                        (hdu.data.dtype != np.dtype('uint16'))):
+
+                        del hdu.header['bzero'], hdu.header['bscale']
+
                 reduced_images.append(ccd)
                 self.progress_bar.description = \
                     ("Processed file {} of {}".format(current_file, n_files))
