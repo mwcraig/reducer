@@ -29,7 +29,7 @@ INSTALL_REQUIRES = ['astropy>=1.0', 'numpy', 'scipy', 'scikit-image',
 
 setup(
     name='reducer',
-    version='0.3.dev',
+    version='0.2.5',
     description='Process FITS files',
     url='http://reducer.readthedocs.org',
     long_description=(open('README.rst').read()),
