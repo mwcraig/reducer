@@ -94,13 +94,6 @@ class Reduction(ReducerBase):
         if allow_flat:
             self.add_child(self._flat_calib)
 
-    @property
-    def reduced_images(self):
-        """
-        List of reduced images; each image is a `ccdproc.CCDData`` object.
-        """
-        return self._reduced_images
-
     def action(self):
         if not self.image_collection:
             raise ValueError("No images to reduce")
@@ -109,7 +102,6 @@ class Reduction(ReducerBase):
         # Refresh in case files have been added since the widget was created.
         self.image_collection.refresh()
 
-        reduced_images = []
         # Suppress warnings that come up here...mostly about HIERARCH keywords
         warnings.filterwarnings('ignore')
         try:
@@ -145,7 +137,6 @@ class Reduction(ReducerBase):
 
                         del hdu.header['bzero'], hdu.header['bscale']
 
-                reduced_images.append(ccd)
                 self.progress_bar.description = \
                     ("Processed file {} of {}".format(current_file, n_files))
                 self.progress_bar.value = current_file/n_files
@@ -155,8 +146,6 @@ class Reduction(ReducerBase):
                   "overwrite existing files.")
         finally:
             self.progress_bar.visible = False
-
-        self._reduced_images = reduced_images
 
 
 class Clipping(gui.ToggleContainer):
