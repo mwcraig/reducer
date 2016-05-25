@@ -266,7 +266,8 @@ class FitsViewer(object):
         self._top.set_title(0, 'Image')
         self._top.set_title(1, 'Header')
         # self._header_display.set_css('height', '300px')
-        self._header_display.height = '300px'
+        self._header_display.height = '400px'
+        self._header_display.width = '500px'
 
     def set_fits_file_callback(self, demo=True, image_dir=None):
         """
