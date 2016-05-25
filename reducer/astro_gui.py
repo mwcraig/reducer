@@ -35,6 +35,22 @@ __all__ = [
 
 DEFAULT_IMAGE_UNIT = "adu"
 
+# The dictionary below is used to map the dtype of the image being
+# reduced to the dtype of the output. The assumption is that the output
+# is typically some kind of floating point, but that there is no need
+# for very high precision output given relatively low resolution
+# input.
+REDUCE_IMAGE_DTYPE_MAPPING = {
+    'uint8': 'float32',
+    'int8': 'float32',
+    'uint16': 'float32',
+    'int16': 'float32',
+    'float32': 'float32',
+    'uint32': 'float64',
+    'int32': 'float64',
+    'float64': 'float64'
+}
+
 
 class ReducerBase(gui.ToggleGo):
     """
@@ -122,9 +138,14 @@ class Reduction(ReducerBase):
                         # Nothing to do for this child, so keep going.
                         continue
                     ccd = child.action(ccd)
+
+                input_dtype = hdu.data.dtype
                 hdu_tmp = ccd.to_hdu()[0]
                 hdu.header = hdu_tmp.header
                 hdu.data = hdu_tmp.data
+                desired_dtype = REDUCE_IMAGE_DTYPE_MAPPING[str(input_dtype)]
+                if desired_dtype != hdu.data.dtype:
+                    hdu.data = hdu.data.astype(desired_dtype)
 
                 # Workaround to ensure uint16 images are handled properly.
                 if 'bzero' in hdu.header:
