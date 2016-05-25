@@ -447,6 +447,11 @@ class Combiner(ReducerBase):
             combined.data = np.array(combined.data, dtype=images[0].dtype)
         if isinstance(combined.uncertainty.array, np.ma.masked_array):
             combined.uncertainty.array = np.array(combined.uncertainty.array)
+
+        # Do not keep the mask or uncertainty if the data has neither
+        if images[0].mask is None and images[0].uncertainty is None:
+            combined.mask = None
+            combined.uncertainty = None
         return combined
 
 
