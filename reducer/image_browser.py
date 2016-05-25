@@ -7,8 +7,12 @@ from io import BytesIO
 
 import numpy as np
 
+import matplotlib.image as mimg
+
 from astropy.io import fits
 from astropy.extern import six
+from astropy.visualization import scale_image
+from astropy.nddata.utils import block_reduce
 
 import msumastro
 
@@ -203,24 +207,25 @@ class ImageTree(object):
         pass
 
 
-def ndarray_to_png(x):
-    from PIL import Image
+def ndarray_to_png(x, min_percent=20, max_percent=99.5):
     shape = np.array(x.shape)
     # Reverse order for reasons I do not understand...
     shape = shape[::-1]
     if len(shape) != 2:
         return
-    aspect = shape[1]/shape[0]
+
     width = 600  # pixels
-    new_shape = np.asarray(width/shape[0]*aspect*shape, dtype='int')
-    x = np.asarray(Image.fromarray(x.astype('float32')).resize(new_shape))
-    x = (x - x.mean()) / x.std()
-    x[x >= 3] = 2.99
-    x[x < -3] = -3.0
-    x = (x - x.min()) / (1.1*x.max() - x.min())
-    img = Image.fromarray((x*256).astype('uint8'))
+    downsample = (shape[0] // width) + 1
+    scaled_data = scale_image(x,
+                              min_percent=min_percent,
+                              max_percent=max_percent)
+
+    if downsample > 1:
+        scaled_data = block_reduce(scaled_data,
+                                   block_size=(downsample, downsample))
+
     img_buffer = BytesIO()
-    img.save(img_buffer, format='png')
+    mimg.imsave(img_buffer, scaled_data, format='png', cmap='gray')
     return img_buffer.getvalue()
 
 

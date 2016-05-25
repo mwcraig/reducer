@@ -22,7 +22,7 @@ class PyTest(TestCommand):
         errcode = pytest.main(self.test_args)
         sys.exit(errcode)
 
-INSTALL_REQUIRES = ['astropy>=1.0', 'numpy', 'scipy', 'pillow',
+INSTALL_REQUIRES = ['astropy>=1.0', 'numpy', 'scipy', 'scikit-image',
                     'ipython >3.0', 'msumastro>=0.8', 'ccdproc>=0.3',
                     'matplotlib', 'jupyter-pip']
 
