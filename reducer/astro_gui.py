@@ -51,6 +51,10 @@ REDUCE_IMAGE_DTYPE_MAPPING = {
     'float64': 'float64'
 }
 
+# The limit below is used  by the combining function to decide whether or
+# not the image should be broken up into chunks.
+DEFAULT_MEMORY_LIMIT = 4e9  # roughly 4GB
+
 
 class ReducerBase(gui.ToggleGo):
     """
@@ -437,40 +441,51 @@ class Combiner(ReducerBase):
         if filter_dict is not None:
             combined_dict.update(filter_dict)
 
-        images = []
+        file_list = [os.path.join(self.image_source.location, f) for f in
+                     self.image_source.files_filtered(**combined_dict)]
 
-        for hdu in self.image_source.hdus(**combined_dict):
-            try:
-                unit = hdu.header['BUNIT']
-            except KeyError:
-                unit = DEFAULT_IMAGE_UNIT
-            images.append(ccdproc.CCDData(hdu.data,
-                                          meta=hdu.header,
-                                          unit=unit))
-        combiner = ccdproc.Combiner(images, dtype=images[0].dtype)
-        if self._clipping_widget.toggle.value:
-            if self._clipping_widget.min_max:
-                combiner.minmax_clipping(min_clip=self._clipping_widget.min_max.min,
-                                         max_clip=self._clipping_widget.min_max.max)
-            if self._clipping_widget.sigma_clip:
-                combiner.sigma_clipping(low_thresh=self._clipping_widget.sigma_clip.min,
-                                        high_thresh=self._clipping_widget.sigma_clip.max,
-                                        func=np.ma.median)
-        if self._combine_method.scaling_func:
-            combiner.scaling = self._combine_method.scaling_func
+        combine_keyword_args = {
+            'minmax_clip': self._clipping_widget.min_max,
+            'sigma_clip': self._clipping_widget.sigma_clip,
+        }
+
         if self._combine_method.method == 'Average':
-            combined = combiner.average_combine()
+            combine_keyword_args['method'] = 'average'
         elif self._combine_method.method == 'Median':
-            combined = combiner.median_combine()
-        combined.header = images[0].header
+            combine_keyword_args['method'] = 'median'
+
+        if combine_keyword_args['minmax_clip']:
+            combine_keyword_args['minmax_clip_min'] = \
+                self._clipping_widget.min_max.min
+            combine_keyword_args['minmax_clip_max'] = \
+                self._clipping_widget.min_max.max
+
+        if combine_keyword_args['sigma_clip']:
+            combine_keyword_args['sigma_clip_low_thresh'] = \
+                self._clipping_widget.sigma_clip.min
+            combine_keyword_args['sigma_clip_low_thresh'] = \
+                self._clipping_widget.sigma_clip.min
+
+        if self._combine_method.scaling_func:
+            combine_keyword_args['scale'] = self._combine_method.scaling_func
+
+        combined = ccdproc.combine(file_list,
+                                   mem_limit=DEFAULT_MEMORY_LIMIT,
+                                   **combine_keyword_args)
+
+        sample_image = ccdproc.CCDData.read(file_list[0])
+        combined.header = sample_image.header
         combined.header['master'] = True
-        if combined.data.dtype != images[0].dtype:
-            combined.data = np.array(combined.data, dtype=images[0].dtype)
-        if isinstance(combined.uncertainty.array, np.ma.masked_array):
-            combined.uncertainty.array = np.array(combined.uncertainty.array)
+        if combined.data.dtype != sample_image.dtype:
+            combined.data = np.array(combined.data, dtype=sample_image.dtype)
+        try:
+            if isinstance(combined.uncertainty.array, np.ma.masked_array):
+                combined.uncertainty.array = np.array(combined.uncertainty.array)
+        except AttributeError:
+            pass
 
         # Do not keep the mask or uncertainty if the data has neither
-        if images[0].mask is None and images[0].uncertainty is None:
+        if sample_image.mask is None and sample_image.uncertainty is None:
             combined.mask = None
             combined.uncertainty = None
         return combined
@@ -483,7 +498,8 @@ class CosmicRaySettings(gui.ToggleContainer):
         super(CosmicRaySettings, self).__init__(*args, **kwd)
         cr_choices = override_str_factory(
             widgets.Dropdown(description='Method:',
-                                   options=['median [not connected yet]', 'LACosmic [coming soon]'])
+                             options=['median [not connected yet]',
+                                      'LACosmic [coming soon]'])
         )
         self.add_child(cr_choices)
 
