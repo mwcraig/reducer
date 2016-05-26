@@ -26,6 +26,18 @@ New Features
 Other Changes
 ^^^^^^^^^^^^^
 
+- Use combine function for combining images to limit memory usage during
+  image combination. [#120, #121]
+
+- Use ``median`` and ``median_absolute_deviation`` in sigma clipping instead
+  of the default ``mean`` and ``std``. [#106]
+
+- Discard mask/uncertainty from result of image combination unless input
+  images have mask/uncertainty. [#119]
+
+- Choose sensible data type for reduced images based on data type of original
+  images. [#122]
+
 Bug fixes
 ^^^^^^^^^
 
