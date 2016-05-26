@@ -247,7 +247,7 @@ class ToggleMinMax(ToggleContainer):
             hbox.orientation = 'horizontal'
         for child in self.container.children:
             # child.set_css('width', '30px')
-            child.width = '30px'
+            child.width = '50px'
 
     @property
     def min(self):
