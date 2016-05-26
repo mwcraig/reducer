@@ -8,6 +8,7 @@ import warnings
 from astropy.modeling import models
 import ccdproc
 from astropy.extern import six
+from astropy.stats import median_absolute_deviation
 
 import numpy as np
 
@@ -465,6 +466,9 @@ class Combiner(ReducerBase):
                 self._clipping_widget.sigma_clip.min
             combine_keyword_args['sigma_clip_low_thresh'] = \
                 self._clipping_widget.sigma_clip.min
+            combine_keyword_args['sigma_clip_func'] = np.ma.median
+            combine_keyword_args['sigma_clip_dev_func'] = \
+                median_absolute_deviation
 
         if self._combine_method.scaling_func:
             combine_keyword_args['scale'] = self._combine_method.scaling_func
