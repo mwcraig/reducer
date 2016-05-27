@@ -136,7 +136,7 @@ class ImageTree(object):
                 key = ''
             if depth == 0:
                 self._top = Accordion(description=key)
-                self._top.selected_index = -1
+                # self._top.selected_index = -1
                 self._gui_objects[parent_string] = self._top
 
             parent = self._gui_objects[parent_string]
@@ -148,7 +148,7 @@ class ImageTree(object):
                     desc = ": ".join([key, str(child)])
                     child_container = Accordion(description=desc)
                     # Make sure all panels start out closed.
-                    child_container.selected_index = -1
+                    # child_container.selected_index = -1
                     child_container.parent = self._gui_objects[parent_string]
                     child_string = os.path.join(parent_string, str(child))
                     self._gui_objects[child_string] = child_container
@@ -203,8 +203,17 @@ class ImageTree(object):
     def format(self):
         """
         This gets called by the ImageBrowser so don't delete it.
+
+        For now it also closes all of the tabs after the browser is created
+        because doing it before (at least ipywidgets 5.1.5 and lower) causes
+        a javascript error which prevents properly setting the titles.
         """
-        pass
+        for name, obj in six.iteritems(self._gui_objects):
+            if isinstance(obj, Accordion):
+                obj.selected_index = -1
+                for idx, child in enumerate(obj.children):
+                    if not isinstance(child, widgets.Select):
+                        child.selected_index = -1
 
 
 def ndarray_to_png(x, min_percent=20, max_percent=99.5):
