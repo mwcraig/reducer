@@ -2,6 +2,8 @@ from setuptools import setup, find_packages
 from setuptools.command.test import test as TestCommand
 import sys
 
+import versioneer
+
 try:
     from jupyterpip import cmdclass
 except:
@@ -29,7 +31,7 @@ INSTALL_REQUIRES = ['astropy>=1.0', 'numpy', 'scipy', 'scikit-image',
 
 setup(
     name='reducer',
-    version='0.3.dev',
+    version=versioneer.get_version(),
     description='Process FITS files',
     url='http://reducer.readthedocs.org',
     long_description=(open('README.rst').read()),
@@ -43,7 +45,8 @@ setup(
         'docs': ['numpydoc', 'sphinx-argparse', 'sphinx_rtd_theme'],
     },
     tests_require=['pytest>1.4'] + INSTALL_REQUIRES,
-    cmdclass=cmdclass('accordion_replacement'), #{'test': PyTest, ''},
+    cmdclass=versioneer.get_cmdclass(),
+    # cmdclass=cmdclass('accordion_replacement'),  #{'test': PyTest, ''},
     entry_points={
         'console_scripts': [
             ('reducer = '
