@@ -122,6 +122,7 @@ class Reduction(ReducerBase):
 
         # Refresh in case files have been added since the widget was created.
         self.image_collection.refresh()
+        self._master_source.refresh()
 
         # Suppress warnings that come up here...mostly about HIERARCH keywords
         warnings.filterwarnings('ignore')

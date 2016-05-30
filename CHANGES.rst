@@ -14,7 +14,26 @@ Bug fixes
 ^^^^^^^^^
 
 
-0.2.6 (unreleased)
+0.2.7 (unreleased)
+----------------
+
+General
+^^^^^^^
+
+New Features
+^^^^^^^^^^^^
+
+Other Changes
+^^^^^^^^^^^^^
+
+Bug fixes
+^^^^^^^^^
+
+- The `ImageFileCollection` used to find masters was out of date and not
+  refreshed if a reduction widget was created before the masters were
+  created. [#127]
+
+0.2.6 (2016-05-27)
 ----------------
 
 General
