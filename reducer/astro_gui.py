@@ -122,7 +122,12 @@ class Reduction(ReducerBase):
 
         # Refresh in case files have been added since the widget was created.
         self.image_collection.refresh()
-        self._master_source.refresh()
+
+        # Only refresh the master_source if it exists. No need to error check
+        # the main image_collection because a sensible error is raised if it
+        # does not exist.
+        if self._master_source:
+            self._master_source.refresh()
 
         # Suppress warnings that come up here...mostly about HIERARCH keywords
         warnings.filterwarnings('ignore')

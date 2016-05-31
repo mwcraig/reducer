@@ -14,7 +14,25 @@ Bug fixes
 ^^^^^^^^^
 
 
-0.2.7 (unreleased)
+0.2.8 (2016-05-31)
+----------------
+
+General
+^^^^^^^
+
+New Features
+^^^^^^^^^^^^
+
+Other Changes
+^^^^^^^^^^^^^
+
+Bug fixes
+^^^^^^^^^
+
+- Check that the image collection for master images exists before refreshing
+  it. [#128]
+
+0.2.7 (2016-05-30)
 ----------------
 
 General
