@@ -24,9 +24,17 @@ class PyTest(TestCommand):
         errcode = pytest.main(self.test_args)
         sys.exit(errcode)
 
-INSTALL_REQUIRES = ['astropy>=1.0', 'numpy', 'scipy', 'scikit-image',
-                    'ipython >3.0', 'msumastro>=0.8', 'ccdproc>=0.3',
-                    'matplotlib', 'jupyter-pip']
+INSTALL_REQUIRES = [
+    'astropy>=1.0',  # For several things...
+    'numpy',
+    'scipy',
+    'scikit-image',
+    'ipywidgets >=4.0.1,<5',  # This will pull in jupyter, etc.
+    'msumastro>=0.8',  # For TableTree
+    'ccdproc>=1',  # For reduction tasks
+    'matplotlib',  # Image display
+    'dask'  # Required by scikit-image
+]
 
 
 setup(
@@ -59,4 +67,4 @@ setup(
                  'Programming Language :: Python :: 3',
                  'Intended Audience :: Science/Research',
                  'Topic :: Scientific/Engineering :: Astronomy'],
-    )
+)
