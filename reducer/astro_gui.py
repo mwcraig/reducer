@@ -150,7 +150,7 @@ class Reduction(ReducerBase):
                         continue
                     ccd = child.action(ccd)
 
-                input_dtype = hdu.data.dtype
+                input_dtype = hdu.data.dtype.name
                 hdu_tmp = ccd.to_hdu()[0]
                 hdu.header = hdu_tmp.header
                 hdu.data = hdu_tmp.data
