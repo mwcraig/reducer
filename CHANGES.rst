@@ -14,6 +14,28 @@ Bug fixes
 ^^^^^^^^^
 
 
+0.2.9 (2016-06-16)
+----------------
+
+General
+^^^^^^^
+
+New Features
+^^^^^^^^^^^^
+
+Other Changes
+^^^^^^^^^^^^^
+
+- Update package requirements to ipywidgets instead of ipython, and restrict
+  version number.
+
+Bug fixes
+^^^^^^^^^
+
+- Use numpy dtype name instead of dtype itself to determine output
+  dtype. [#129]
+
+
 0.2.8 (2016-05-31)
 ----------------
 
