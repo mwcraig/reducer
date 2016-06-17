@@ -5,7 +5,6 @@ channels:
   - mwcraig
 
 dependencies:
-  - appnope
   - astropy
   - astroscrappy
   - backports
@@ -61,7 +60,6 @@ dependencies:
   - pyqt
   - python
   - python-dateutil
-  - python.app
   - pytz
   - pyyaml
   - pyzmq
