@@ -3,7 +3,7 @@
 Quickstart
 ----------
 
-The ``reducer`` package generates a widget-based IPython notebook for reducing
+The ``reducer`` package generates a widget-based Jupyter notebook for reducing
 astronomical images. The actual reduction steps are done by `ccdproc`_.
 
 Installation
@@ -44,14 +44,9 @@ reduced data to end up. Then, at the command line, type::
 
     $ reducer
 
-That will create notebook called ``reduction.ipynb``. Open that notebook with
-either::
+That will create notebook called ``reduction.ipynb``. Open that notebook with::
 
-    $ ipython notebook # IPython 3
-
-or::
-
-    $ jupyter notebook # IPython 4
+    $ jupyter notebook
 
 Using the notebook
 ++++++++++++++++++

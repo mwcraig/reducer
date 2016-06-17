@@ -1,5 +1,4 @@
-This package provides an ipython notebook for reducing and doing
-stellar photometry on CCD data.
+This package provides an Jupyter notebook for reducing CCD data.
 
 Documentation is at: https://reducer.readthedocs.org
 
@@ -62,7 +61,7 @@ Usage
 =====
 
 This package doesn't magically do your reduction for you. Instead, it
-creates a template `ipython notebook <http://ipython.org>`_ that leads
+creates a template `jupyter notebook <http://jupyter.org>`_ that leads
 you through data reduction. When you are done
 you have reduced your data and *you have a notebook that allows you or
 someone else to reproduce your work*.
@@ -76,7 +75,7 @@ directory where the data is, though it can be), then type::
 This will create a new template notebook. To open the notebook, type
 in a terminal::
 
-    ipython notebook
+    jupyter notebook
 
 A browser window will open; the notebook you want is named "reduction.ipynb".
 Click on it, then just do what it says in the notebook and reduced data (and
