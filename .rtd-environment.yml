@@ -6,6 +6,7 @@ channels:
 
 dependencies:
   - astropy
+  - astropy-helpers
   - astroscrappy
   - backports
   - backports_abc
