@@ -34,6 +34,7 @@ distribution and ``conda`` (because everything has been compiled for you).
 To install using ``conda``:
 
 ::
+
     conda install -c mwcraig -c astropy reducer
 
 
