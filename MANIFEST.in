@@ -2,3 +2,8 @@ include README.rst CHANGES.rst CONTRIBUTORS.rst
 recursive-include reducer reducer-template.ipynb  *.tbz2
 include versioneer.py
 include reducer/_version.py
+
+recursive-include docs *
+prune docs/_build
+
+prune build
