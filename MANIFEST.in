@@ -1,5 +1,4 @@
 include README.rst CHANGES.rst CONTRIBUTORS.rst
 recursive-include reducer reducer-template.ipynb  *.tbz2
-include accordion_replacement/accordion_patch.js
 include versioneer.py
 include reducer/_version.py
