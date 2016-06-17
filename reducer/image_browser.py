@@ -14,10 +14,13 @@ from astropy.extern import six
 from astropy.visualization import scale_image
 from astropy.nddata.utils import block_reduce
 
+
+import ipywidgets as widgets
+from ipywidgets import Accordion
+
 import msumastro
 
 from .notebook_dir import get_data_path
-from .ipython_version_helper import ipython_version_as_string
 
 __all__ = [
     'ImageTree',
@@ -25,26 +28,6 @@ __all__ = [
     'ImageBrowser',
     'ndarray_to_png',
 ]
-
-ipython_version = ipython_version_as_string()
-
-if ipython_version.startswith('3'):
-    from IPython.html import widgets
-    from IPython.utils.traitlets import Unicode
-else:
-    import ipywidgets as widgets
-    from traitlets import Unicode
-
-if (ipython_version.startswith('3') or
-    (int(ipython_version) <= 402)):
-    # Use my accordion js
-    class Accordion(widgets.Accordion):
-
-        _view_module = Unicode("nbextensions/accordion_replacement/accordion_patch", sync=True)
-        _view_name = Unicode("AccordionView", sync=True)
-else:
-    class Accordion(widgets.Accordion):
-        pass
 
 
 class ImageTree(object):
