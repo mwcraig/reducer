@@ -4,6 +4,8 @@
 General
 ^^^^^^^
 
+- This version only supports IPython 4 or higher, and requires ``ipywidgets``.
+
 New Features
 ^^^^^^^^^^^^
 

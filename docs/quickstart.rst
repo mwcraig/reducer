@@ -9,9 +9,28 @@ astronomical images. The actual reduction steps are done by `ccdproc`_.
 Installation
 ++++++++++++
 
-Make sure you have ``numpy`` installed before installing ``reducer``. On
-Windows your best bet is the `Anaconda python distribution`_, which installs
-the essential parts.
+The recommended way to install ``reducer``, especially on Windows, is with the
+`Anaconda python distribution`_. Several of the packages that ``reducer``
+depends on need to be compiled...and most people haven't installed a compiler
+on Windows.
+
+Installing with anaconda
+########################
+
+1. Download and install the `Anaconda python distribution`_.
+2. Depending on your platform:
+
+  a. Windows: Open the "Anaconda Command Prompt" from the start menu.
+  b. Mac: Open the Terminal app (it is in Applications/Utilities)
+  c. Linux: Open a terminal windows.
+
+3. Install ``reducer`` by typing, in the terminal: ``conda install -c mwcraig -c astropy reducer``
+
+Installing with other python distributions
+##########################################
+
+Remember, this route requires that you have a compiler installed and properly
+configured. On Windows, you do not have that unless you have set it up.
 
 Install ``reducer`` with pip::
 

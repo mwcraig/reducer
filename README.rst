@@ -3,6 +3,8 @@ stellar photometry on CCD data.
 
 Documentation is at: https://reducer.readthedocs.org
 
+.. image:: http://img.shields.io/badge/powered%20by-AstroPy-orange.svg?style=flat :target:http://astropy.org
+
 Please provide feedback
 =======================
 
@@ -16,18 +18,27 @@ Installation
 ============
 
 
-
-
-**Note about IPython version support:** Version 0.2 and higher of reducer
-works with IPython 3 and 4. Version 0.1 works with IPython 2. No improvements
-to ``reducer`` will be backported to version 0.1.x/IPython 2. Feel free to
-fork if you need that!
+**Note about IPython/Jupyter version support:** Version 0.3 and higher of
+reducer works with IPython 4/Jupyter. Version 0.1 works with IPython 2, and
+Version 0.2.x work with IPython 3 or IPython 4/Jupyter. No improvements to
+``reducer`` will be backported to version 0.1.x/IPython 2 or to 0.2.x/IPYthon
+3. Feel free to fork if you need that!
 
 You need python (2.7, or 3.4 or higher) and the `SciPy
 stack <http://scipy.org>`__. The easiest way to the get the full stack
 is from a distribution like `anaconda <http://continuum.io>`__.
 
-Then, in a terminal/command window:
+On Windows it will be easiest to install using the Anaconda Python
+distribution and ``conda`` (because everything has been compiled for you).
+
+To install using ``conda``:
+
+::
+    conda install -c mwcraig -c astropy reducer
+
+
+If you prefer, you can install with pip in any python distribution (but may
+end up compiling some of the dependencies):
 
 ::
 
