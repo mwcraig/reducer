@@ -1,14 +1,8 @@
 from __future__ import (division, print_function, absolute_import,
                         unicode_literals)
 
-from .ipython_version_helper import ipython_version_as_string
-
-if ipython_version_as_string().startswith('3'):
-    from IPython.html import widgets
-    from IPython.utils.traitlets import link
-else:
-    import ipywidgets as widgets
-    from traitlets import link
+import ipywidgets as widgets
+from traitlets import link
 
 __all__ = [
     'ToggleContainer',
