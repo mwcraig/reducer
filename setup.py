@@ -4,15 +4,6 @@ import sys
 
 import versioneer
 
-try:
-    from jupyterpip import cmdclass
-except:
-    import pip
-    import importlib
-    pip.main(['install', 'jupyter-pip'])
-    cmdclass = importlib.import_module('jupyterpip').cmdclass
-
-
 class PyTest(TestCommand):
     def finalize_options(self):
         TestCommand.finalize_options(self)
