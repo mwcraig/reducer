@@ -1,4 +1,4 @@
-This package provides an Jupyter notebook for reducing CCD data.
+This package provides a Jupyter notebook for reducing CCD data.
 
 Documentation is at: https://reducer.readthedocs.org
 
