@@ -49,6 +49,8 @@ class ImageTree(object):
         self._top = None
         self._create_gui()
         self._set_titles()
+        # Generate an array to improve initial display time
+        ndarray_to_png(np.random.rand(1200, 1200))
 
     @property
     def top(self):
@@ -195,8 +197,10 @@ class ImageTree(object):
             if isinstance(obj, Accordion):
                 obj.selected_index = -1
                 for idx, child in enumerate(obj.children):
-                    if not isinstance(child, widgets.Select):
+                    if isinstance(child, Accordion):
                         child.selected_index = -1
+                    elif isinstance(child, widgets.Box):
+                        child.children[0].width = "15em"
 
 
 def ndarray_to_png(x, min_percent=20, max_percent=99.5):
@@ -232,9 +236,16 @@ class FitsViewer(object):
         self._data = None  # hdu.data
         self._png_image = None  # ndarray_to_png(self._data)
         self._header = ''
+
+        self._image_box = widgets.VBox()
         self._image = widgets.Image()
+        self._image_title = widgets.Latex()
+        self._image_box.children = [self._image, self._image_title]
+
+        self._header_box = widgets.VBox()
         self._header_display = widgets.Textarea(disabled=True)
-        self._top.children = [self._image, self._header_display]
+        self._header_box.children = [self._header_display]
+        self._top.children = [self._image_box, self._header_box]
 
     @property
     def top(self):
@@ -260,6 +271,15 @@ class FitsViewer(object):
         # self._header_display.set_css('height', '300px')
         self._header_display.height = '400px'
         self._header_display.width = '500px'
+
+        # Let the bike shedding begin....
+        self._image_box.align = "center"
+        self._image.padding = "10px"
+        self._image_box.border_style = 'solid'
+        self._image_box.border_radius = "5px"
+        self._image_box.border_color = "lightgray"
+        self._header_box.align = "center"
+        self._header_box.padding = "10px"
 
     def set_fits_file_callback(self, demo=True, image_dir=None):
         """
@@ -297,6 +317,7 @@ class FitsViewer(object):
                 self._header = hdu.header
             self._header_display.value = repr(self._header)
             self._image.value = ndarray_to_png(self._data)
+            self._image_title.value = os.path.basename(full_path)
             self.top.visible = True
 
         return set_fits_file
@@ -360,12 +381,12 @@ class ImageBrowser(widgets.FlexBox):
         self._fits_display.format()
 
         # self.tree_widget.add_class('box-flex1')
-        self.tree_widget.width = '20em'
+        self.tree_widget.width = '25%'
         # self.fits_display.add_class('box-flex2')
         self.fits_display.width = '67%'
         for child in self.children:
             # child.set_css('margin', '10px')
-            child.margin = '10px'
+            child.margin = '5px'
 
     def _add_handler(self, node):
         if isinstance(node, widgets.Select):
