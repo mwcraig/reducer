@@ -330,12 +330,16 @@ class ImageBrowser(widgets.FlexBox):
     Parameters
     ----------
 
-    tree : `msumastro.TableTree`
-        Tree of images, arranged by metadata.
+    collection : `ccdproc.ImageFileCollection`
+        Directory of images.
     """
-    def __init__(self, tree, *args, **kwd):
-        self._directory = kwd.pop('directory', '.')
-        self._demo = kwd.pop('demo', True)
+    def __init__(self, collection, allow_missing=True, *args, **kwd):
+        self._directory = collection.location
+        self._demo = kwd.pop('demo', False)
+        self._tree_keys = kwd.pop('keys', [])
+        missing = 'No value' if allow_missing else None
+        tree = msumastro.TableTree(collection.summary, self._tree_keys, 'file',
+                                   fill_missing=missing)
         kwd['orientation'] = 'horizontal'
         super(ImageBrowser, self).__init__(*args, **kwd)
         self._tree_widget = ImageTree(tree)
