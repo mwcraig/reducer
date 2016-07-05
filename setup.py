@@ -21,7 +21,7 @@ INSTALL_REQUIRES = [
     'scipy',
     'scikit-image',
     'ipywidgets >=4.0.1,<5',  # This will pull in jupyter, etc.
-    'msumastro>=0.8',  # For TableTree
+    'msumastro>=0.9',  # For TableTree
     'ccdproc>=1',  # For reduction tasks
     'matplotlib',  # Image display
     'dask'  # Required by scikit-image
