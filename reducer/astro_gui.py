@@ -90,6 +90,7 @@ class Reduction(ReducerBase):
         allow_flat = kwd.pop('allow_flat', True)
         allow_dark = kwd.pop('allow_dark', True)
         allow_bias = kwd.pop('allow_bias', True)
+        allow_cosmic_ray = kwd.pop('allow_cosmic_ray', False)
         self.image_collection = kwd.pop('input_image_collection', None)
         self._master_source = kwd.pop('master_source', None)
         super(Reduction, self).__init__(*arg, **kwd)
@@ -101,7 +102,6 @@ class Reduction(ReducerBase):
         self._flat_calib = FlatCorrect(master_source=self._master_source)
         self.add_child(self._overscan)
         self.add_child(self._trim)
-        self.add_child(self._cosmic_ray)
 
         if allow_bias:
             self.add_child(self._bias_calib)
@@ -109,6 +109,9 @@ class Reduction(ReducerBase):
             self.add_child(self._dark_calib)
         if allow_flat:
             self.add_child(self._flat_calib)
+
+        if allow_cosmic_ray:
+            self.add_child(self._cosmic_ray)
 
     def action(self):
         if not self.image_collection:
@@ -394,8 +397,8 @@ class Combiner(ReducerBase):
         sanity = super(Combiner, self).is_sane
         # ...but flip to insane if neither clipping nor combination is
         # selected.
-        sanity = sanity and (self._clipping_widget.toggle.value
-                             or self._combine_method.toggle.value)
+        sanity = sanity and (self._clipping_widget.toggle.value or
+                             self._combine_method.toggle.value)
         return sanity
 
     def format(self):
