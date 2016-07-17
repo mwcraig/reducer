@@ -91,6 +91,7 @@ class Reduction(ReducerBase):
         allow_dark = kwd.pop('allow_dark', True)
         allow_bias = kwd.pop('allow_bias', True)
         allow_cosmic_ray = kwd.pop('allow_cosmic_ray', False)
+        allow_copy = kwd.pop('allow_copy_only', True)
         self.image_collection = kwd.pop('input_image_collection', None)
         self._master_source = kwd.pop('master_source', None)
         super(Reduction, self).__init__(*arg, **kwd)
@@ -100,6 +101,13 @@ class Reduction(ReducerBase):
         self._bias_calib = BiasSubtract(master_source=self._master_source)
         self._dark_calib = DarkSubtract(master_source=self._master_source)
         self._flat_calib = FlatCorrect(master_source=self._master_source)
+
+        if allow_copy:
+            self._copy_only = CopyFiles()
+            self.add_child(self._copy_only)
+        else:
+            self._copy_only = None
+
         self.add_child(self._overscan)
         self.add_child(self._trim)
 
@@ -112,6 +120,12 @@ class Reduction(ReducerBase):
 
         if allow_cosmic_ray:
             self.add_child(self._cosmic_ray)
+
+        if self._copy_only:
+            self._copy_only._state_monitor.on_trait_change(
+                self._disable_all_others(),
+                str('value')
+            )
 
     def action(self):
         if not self.image_collection:
@@ -176,6 +190,24 @@ class Reduction(ReducerBase):
                   "overwrite existing files.")
         finally:
             self.progress_bar.visible = False
+
+    def _disable_all_others(self):
+        if not self._copy_only:
+            return None
+
+        def handler():
+            all_but_copy = [c for c in self.container.children
+                            if c is not self._copy_only]
+
+            if self._copy_only._state_monitor.value:
+                for child in all_but_copy:
+                    print(child.description)
+                    child.disabled = True
+            else:
+                for child in all_but_copy:
+                    child.disabled = False
+
+        return handler
 
 
 class Clipping(gui.ToggleContainer):
@@ -699,6 +731,21 @@ class CalibrationStep(gui.ToggleContainer):
                 self._image_cache[path] = \
                     ccdproc.CCDData.read(path, unit=DEFAULT_IMAGE_UNIT)
             return self._image_cache[path]
+
+
+class CopyFiles(gui.ToggleContainer):
+    """
+    Just copy images to destination directory without modifying the file.
+    Useful, for example, if the bias frames have no overscan and do not need
+    to be trimmed.
+    """
+    def __init__(self, **kwd):
+        desc = kwd.pop('description', 'Copy without any other action?')
+        kwd['description'] = desc
+        super(CopyFiles, self).__init__(**kwd)
+
+    def action(self, ccd):
+        return ccd
 
 
 class BiasSubtract(CalibrationStep):
