@@ -1,13 +1,32 @@
-0.3.0 (unreleased)
+1.0.0 (unreleased)
 ----------------
 
 General
 ^^^^^^^
 
-- This version only supports IPython 4 or higher, and requires ``ipywidgets``.
+New Features
+^^^^^^^^^^^^
+
+Other Changes
+^^^^^^^^^^^^^
+
+Bug fixes
+^^^^^^^^^
+
+
+0.3.0 (2016-07-17)
+----------------
+
+General
+^^^^^^^
+
+- This version only supports IPython 4 or higher, and requires ``ipywidgets`` version 4.
+- The minimum required version of ccdproc is now 1.0.
 
 New Features
 ^^^^^^^^^^^^
+
+- Images can now simply be copied from the source to the destination directory. [#137]
 
 Other Changes
 ^^^^^^^^^^^^^
