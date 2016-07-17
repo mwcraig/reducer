@@ -62,7 +62,7 @@ Images are arranged based on the values of keywords in their FITS headers.
 Clicking on a file name displays the image and a tab for displaying the
 header.
 
-.. image:: images/file_browser.gif
+.. image:: images/file_browser_newer.gif
 
 The FITS keywords used to construct the menu tree at the left are determined
 by this line in the notebook::
