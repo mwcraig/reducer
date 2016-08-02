@@ -148,5 +148,15 @@ produced::
 It could also be used to combine science images in the unlikely case that you
 wanted to simply average the images without aligning them.
 
+Short video walkthrough
++++++++++++++++++++++++
+
+The YouTube video below has a walkthrough of the reducer notebook. No
+explanatory audio or text, but it goes through the entire reduction process.
+
+.. raw:: html
+
+    <iframe width="640" height="480" src="https://www.youtube-nocookie.com/embed/fhyursvZPU0?rel=0&amp;showinfo=0" frameborder="0" allowfullscreen></iframe>
+
 .. _Anaconda python distribution: http://continuum.io/downloads
 .. _ccdproc: http://ccdproc.readthedocs.org

@@ -30,7 +30,7 @@ explanatory audio or text, check out the :ref:`quickstart` for that.
 
 .. raw:: html
 
-    <iframe width="640" height="480" src="https://www.youtube-nocookie.com/embed/Fexf7e-Reso" frameborder="0" allowfullscreen></iframe>
+    <iframe width="640" height="480" src="https://www.youtube-nocookie.com/embed/fhyursvZPU0?rel=0&amp;showinfo=0" frameborder="0" allowfullscreen></iframe>
 
 
 
