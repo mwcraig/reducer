@@ -1,0 +1,86 @@
+{% set version = "0.3.1" %}
+
+package:
+  name: reducer
+  version: {{ version }}
+
+source:
+  fn: reducer-{{ version }}.tar.gz
+  url: https://pypi.io/packages/source/r/reducer/reducer-{{ version }}.tar.gz
+  md5:
+  patches:
+    - py2_patch.diff  # [py2k]
+   # List any patch files here
+   # - fix.patch
+
+build:
+  # noarch_python: True
+  # preserve_egg_dir: True
+  script: python setup.py install --single-version-externally-managed --record record.txt
+  entry_points:
+    # Put any entry points (scripts to be generated automatically) here. The
+    # syntax is module:function.  For example
+    #
+    # - reducer = reducer:main
+    #
+    # Would create an entry point called reducer that calls reducer.main()
+
+    - reducer = reducer:main
+
+  # If this is a new build for the same version, increment the build
+  # number. If you do not include this key, it defaults to 0.
+  number: 1
+
+requirements:
+  build:
+    - python
+    - setuptools
+
+  run:
+    - python
+    - astropy >=1.2
+    - numpy
+    - scipy
+    - scikit-image
+    - ipywidgets >=4.0.1,<5
+    - msumastro >=0.9
+    - ccdproc >=1
+    - matplotlib
+    - dask
+
+test:
+  # Python imports
+  imports:
+    - reducer
+
+  commands:
+    # You can put test commands to be run here.  Use this to test that the
+    # entry points work.
+
+    - reducer --help
+
+  # You can also put a file called run_test.py in the recipe that will be run
+  # at test time.
+
+  requires:
+    - astropy >=1.0
+    - ccdproc >=1
+    - dask
+    - ipywidgets >=4.0.1,<5
+    - matplotlib
+    - msumastro >=0.9
+    - numpy
+    - pytest >1.4
+    - scikit-image
+    - scipy
+    # Put any additional test requirements here.  For example
+    # - nose
+
+about:
+  home: http://reducer.readthedocs.org
+  license: BSD License
+  summary: 'Process FITS files'
+
+# See
+# http://docs.continuum.io/conda/build.html for
+# more information about meta.yaml
