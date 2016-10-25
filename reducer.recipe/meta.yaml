@@ -1,5 +1,5 @@
-{% set version = "0.3.1" %}
-{% set sha256 = "afdec1f1655b1a8b7bf9e46cd5be26b21a0a41c39fd6399deff6db74e8ba9251" %}
+{% set version = "0.3.2" %}
+{% set sha256 = "5ef2110aff82e3844f98b395301f3a56074d8388fec3e92a2c0a08e93da2df21" %}
 
 package:
   name: reducer
@@ -30,7 +30,7 @@ build:
 
   # If this is a new build for the same version, increment the build
   # number. If you do not include this key, it defaults to 0.
-  number: 1
+  number: 0
 
 requirements:
   build:
