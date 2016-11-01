@@ -848,7 +848,7 @@ class PolynomialDropdown(widgets.Dropdown):
             value=1)
 
     def __str__(self):
-        for k, v in six.iteritems(self.values):
+        for k, v in six.iteritems(self.options):
             if v == self.value:
                 return k
 
