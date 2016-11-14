@@ -316,12 +316,18 @@ class ToggleMinMax(ToggleContainer):
 
     def format(self):
         super(ToggleMinMax, self).format()
-        hbox_these = [self, self.container]
-        for hbox in hbox_these:
-            hbox.orientation = 'horizontal'
+
+        # Set some of the formatting
+        self.container.layout.justify_content = 'space-around'
+        self.container.layout.width = '50%'
+
+        # Oh yuck. Current solution for handling visibilty is not
+        # so good....this makes sure that when the widget is made
+        # visible it will be a flex-box.
+        self._display_cache = 'flex'
+
         for child in self.container.children:
-            # child.set_css('width', '30px')
-            child.layout.width = '50px'
+            child.layout.width = '10em'
 
     @property
     def min(self):
@@ -358,15 +364,17 @@ class ToggleGo(ToggleContainer):
         super(ToggleGo, self).__init__(*args, **kwd)
         self._go_container = widgets.HBox(visible=self.toggle.value)
         self._go_button = widgets.Button(description="Lock settings and Go!",
-                                         disabled=True, visible=False)
+                                         disabled=True)
+        self._go_button.layout.display = 'none'
         self._change_settings = widgets.Button(description="Unlock settings",
-                                               disabled=True,
-                                               visible=False)
+                                               disabled=True)
+        self._change_settings.layout.display = 'none'
         self._go_container.children = [self._go_button, self._change_settings]
         self._progress_container = widgets.Box()
         self._progress_bar = widgets.FloatProgress(min=0, max=1.0,
                                                    step=0.01, value=0.0,
                                                    visible=False)
+        self._progress_bar.layout.display = 'none'
         self._progress_container.children = [self._progress_bar]
         # we want the go button to be in a container below the
         #  ToggleContainer's container -- actually, no, want these
@@ -491,8 +499,10 @@ class ToggleGo(ToggleContainer):
             self._go_button.disabled = not self.is_sane
             if self.is_sane:
                 self._go_button.layout.visibility = 'visible'
+                self._go_button.layout.display = ''
             else:
                 self._go_button.layout.visibility = 'hidden'
+                self._go_button.layout.display = 'none'
             # self._go_button.visible = self.is_sane
 
         return change_handler
@@ -512,7 +522,9 @@ class ToggleGo(ToggleContainer):
 
             # change button should really only appear after the work is done.
             self._go_button.layout.width = '68%'
-            self._change_settings.visible = True
+            # self._change_settings.visible = True
+            # Make the change settings button visible.
+            self._change_settings.layout.display = ''
             self._change_settings.disabled = False
         return handler
 
@@ -523,7 +535,9 @@ class ToggleGo(ToggleContainer):
         def handler(b):
             self.disabled = False
             self._go_button.disabled = False
-            self._change_settings.visible = False
+            # self._change_settings.visible = False
+            # Hide the change settings button again.
+            self._change_settings.layout.display = 'none'
             self._go_button.layout.width = '100%'
         return handler
 
@@ -532,7 +546,9 @@ class ToggleGo(ToggleContainer):
         The default action is to invoke the action of each child with an
         update of the progress bar along the way.
         """
-        self.progress_bar.visible = True
+        # self.progress_bar.visible = True
+        # Show the progress bar.
+        self.progress_bar.layout.display = ''
         self.progress_bar.value = 0
         for idx, child in enumerate(self.container.children):
             self.progress_bar.value = (idx + 1) / (len(self.children) + 1)
@@ -544,7 +560,9 @@ class ToggleGo(ToggleContainer):
             self.progress_bar.value = (idx + 1)/len(self.children)
             # Sleep for a bit so we can see progress happening.
 
-        self.progress_bar.visible = False
+        # self.progress_bar.visible = False
+        # Hide the progress bar now that we are done.
+        self.progress_bar.layout.display = 'none'
 
 
 def set_color_for(a_widget):
