@@ -43,7 +43,7 @@ requirements:
     - numpy
     - scipy
     - scikit-image
-    - ipywidgets >=4.0.1,<5
+    - ipywidgets 5.*
     - msumastro >=0.9
     - ccdproc >=1
     - matplotlib
