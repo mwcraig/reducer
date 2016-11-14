@@ -2,7 +2,7 @@ from __future__ import (division, print_function, absolute_import,
                         unicode_literals)
 
 import ipywidgets as widgets
-from traitlets import link
+from traitlets import link, Bool, observe
 
 __all__ = [
     'ToggleContainer',
@@ -12,7 +12,56 @@ __all__ = [
 ]
 
 
-class ToggleContainer(widgets.FlexBox):
+class CheckboxPlus(widgets.Box):
+    """
+    A replacement for the default Checkbox class from ipywidgets. It allows the
+    user to choose whether the checkbox comes before or after the description,
+    and allows the width of the description to be changed. By default the
+    description expands to fits the text.
+
+    Parameters
+    ----------
+
+    All of the parameters that ``Checkbox`` takes, plus these:
+
+    box_first : bool, optional
+        If ``True``, the checkbox is put before the description, which matches
+        the behavior of the ``Checkbox`` in ipywidgets 5. If ``False``, the
+        checkbox is after the description, as in ipywidgets 4.
+    """
+
+    # We need a value to keep track of the state of the checkbox, and HBox
+    # does not have a value by default. We will link this to the value of
+    # the actual checkbox below.
+    value = Bool(default_value=False)
+
+    def __init__(self, *arg, **kwd):
+        box_first = kwd.pop('box_first', False)
+        description = kwd.pop('description', '')
+        super(CheckboxPlus, self).__init__(*arg, **kwd)
+
+        self._check = widgets.Checkbox()
+        self._description = widgets.Label(value=description)
+        children = [self._check, self._description]
+        if not box_first:
+            children.reverse()
+
+        # Make this a flex-box
+        self.layout.display = 'flex'
+
+        # This ensures vertical alignment between the checkbox and its label.
+        self.layout.align_items = 'center'
+
+        # Keep the checkbox and description close together
+        self.layout.justify_content = 'flex-start'
+
+        # Tie this widget's value to the value of the actual checkbox.
+        link((self, 'value'), (self._check, 'value'))
+
+        self.children = children
+
+
+class ToggleContainer(widgets.Box):
     """
     A widget whose state controls the visibility of its chilren.
 
@@ -45,8 +94,10 @@ class ToggleContainer(widgets.FlexBox):
     Do *NOT* set the children of the ToggleContainer; set the children
     of ``ToggleContainer.children`` or use the `add_child` method.
     """
+    visible = Bool(default_value=False)
+
     def __init__(self, *args, **kwd):
-        toggle_types = {'checkbox': widgets.Checkbox,
+        toggle_types = {'checkbox': CheckboxPlus,
                         'button': widgets.ToggleButton}
         toggle_type = kwd.pop('toggle_type', 'checkbox')
         if toggle_type not in toggle_types:
@@ -57,16 +108,28 @@ class ToggleContainer(widgets.FlexBox):
         self._checkbox = toggle_types[toggle_type](description=self.description)
         self._toggle_container.children = [self._checkbox]
         self._container = widgets.Box(description="Toggle-able container")
-        self._state_monitor = widgets.Checkbox(visible=False)
+        self._state_monitor_container = widgets.Box(description="For internal use only", visibility='hidden')
+        self._state_monitor_container.layout.visibility = 'hidden'
+        self._state_monitor_container.display = 'none'
+        self._state_monitor = widgets.Checkbox(visibility='hidden')
+        self._state_monitor.layout.visibility = 'hidden'
+        self._state_monitor.layout.display = 'none'
+        self._state_monitor_container.children = [self._state_monitor]
 
         self.children = [
             self._toggle_container,
             self._container,
-            self._state_monitor
+            self._state_monitor,
         ]
 
         self._link_children()
         self._child_notify_parent_on_change(self.toggle)
+        # Cache the current value of container's display before we start switching
+        # visibility.
+        self._display_cache = self._container.layout.display
+        # Make absolutely sure a change happens...
+        self.visible = True
+        self.visible = False
 
     def __str__(self):
         # Build up a list of strings of top level and children
@@ -96,7 +159,7 @@ class ToggleContainer(widgets.FlexBox):
         """
         Links the visible property of the container to the toggle value.
         """
-        link((self._checkbox, str('value')), (self._container, str('visible')))
+        link((self._checkbox, str('value')), (self, str('visible')))
 
     @property
     def disabled(self):
@@ -153,17 +216,17 @@ class ToggleContainer(widgets.FlexBox):
         called by the `display` method.
         """
         # self._toggle_container.set_css('padding', '3px')
-        self._toggle_container.padding = '3px'
+        self._toggle_container.layout.padding = '3px'
 
         # self.container.set_css('padding', '0px 0px 0px 30px')
-        self.container.padding = '0px 0px 0px 30px'
+        self.container.layout.padding = '0px 0px 0px 30px'
 
         #self.container.set_css('border', '1px red solid')
         #self._toggle_container.set_css('border', '1px red solid')
 
         # self._toggle_container.remove_class('start')
         # self._toggle_container.add_class('center')
-        self._toggle_container.align = 'center'
+        self._toggle_container.layout.align = 'center'
 
     def add_child(self, child):
         """
@@ -215,6 +278,23 @@ class ToggleContainer(widgets.FlexBox):
 
         return flip_state
 
+    @observe('visible')
+    def _set_visibility(self, change):
+        """
+        Update whether the child container is visible using the ipywidgets 5
+        approah.
+        """
+        if change['new']:
+            self._container.layout.visibility = 'visible'
+            self._state_monitor.value = True
+            self._container.layout.display = self._display_cache
+        else:
+            self._container.layout.visibility = 'hidden'
+            self._state_monitor.value = False
+            self._display_cache = self._container.layout.display
+            # This removes the element from the layout on screen.
+            self._container.layout.display = 'none'
+
 
 class ToggleMinMax(ToggleContainer):
     """
@@ -241,7 +321,7 @@ class ToggleMinMax(ToggleContainer):
             hbox.orientation = 'horizontal'
         for child in self.container.children:
             # child.set_css('width', '30px')
-            child.width = '50px'
+            child.layout.width = '50px'
 
     @property
     def min(self):
@@ -323,32 +403,33 @@ class ToggleGo(ToggleContainer):
 
         # self.container.set_css({'border': '1px grey solid',
         #                        'border-radius': '10px'})
-        self.container.border_width = '1px'
-        self.container.border_color = 'gray'
+        self.container.layout.border_width = '1px'
+        self.container.layout.border_color = 'gray'
         self.container.border_radius = '10px'
+        self.container.layout.border = '1px grey solid'
 
         # self.container.set_css('width', '100%')
-        self.container.width = '100%'
+        self.container.layout.width = '100%'
 
         # self.container.set_css('padding', '5px')
-        self.container.padding = '5px'
+        self.container.layout.padding = '5px'
 
         # self._toggle_container.set_css('width', '100%')
-        self._toggle_container.width = '100%'
+        self._toggle_container.layout.width = '100%'
 
         # self._checkbox.set_css('width', '100%')
-        self._checkbox.width = '100%'
+        self._checkbox.layout.width = '100%'
 
         # self._go_container.set_css('padding', '5px')
-        self._go_container.padding = '5px'
+        self._go_container.layout.padding = '5px'
 
         # self._go_container.set_css('width', '100%')
-        self._go_container.width = '100%'
+        self._go_container.layout.width = '100%'
 
         # self._go_button.add_class('box-flex1')
-        self._go_button.width = '100%'
+        self._go_button.layout.width = '100%'
         # self._change_settings.add_class('box-flex3')
-        self._change_settings.width = '30%'
+        self._change_settings.layout.width = '30%'
 
         #self._go_button.add_class('btn-info')
         self._go_button.button_style = 'info'
@@ -358,7 +439,7 @@ class ToggleGo(ToggleContainer):
         self._change_settings.button_style = 'primary'
 
         # self._progress_container.set_css('width', '100%')
-        self._progress_bar.width = '100%'
+        self._progress_bar.layout.width = '100%'
 
         #self._progress_bar.add_class('progress-info')
         self._progress_bar.bar_style = 'info'
@@ -366,7 +447,7 @@ class ToggleGo(ToggleContainer):
         #self._progress_bar.set_css('width', '90%')
         for child in self._go_container.children:
             # child.set_css('margin', '5px')
-            child.margin = '5px'
+            child.layout.margin = '5px'
 
     @property
     def is_sane(self):
@@ -408,7 +489,11 @@ class ToggleGo(ToggleContainer):
             # Sorry about the double negative below, but the IPython widget
             # method is named DISabled...
             self._go_button.disabled = not self.is_sane
-            self._go_button.visible = self.is_sane
+            if self.is_sane:
+                self._go_button.layout.visibility = 'visible'
+            else:
+                self._go_button.layout.visibility = 'hidden'
+            # self._go_button.visible = self.is_sane
 
         return change_handler
 
@@ -426,7 +511,7 @@ class ToggleGo(ToggleContainer):
             self.action()
 
             # change button should really only appear after the work is done.
-            self._go_button.width = '68%'
+            self._go_button.layout.width = '68%'
             self._change_settings.visible = True
             self._change_settings.disabled = False
         return handler
@@ -439,7 +524,7 @@ class ToggleGo(ToggleContainer):
             self.disabled = False
             self._go_button.disabled = False
             self._change_settings.visible = False
-            self._go_button.width = '100%'
+            self._go_button.layout.width = '100%'
         return handler
 
     def action(self):
@@ -470,5 +555,5 @@ def set_color_for(a_widget):
             else:
                 a_widget.toggle.button_style = 'success'
         else:
-            a_widget.toggle.button_style = None
+            a_widget.toggle.button_style = ''
     return set_color
