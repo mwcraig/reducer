@@ -15,6 +15,7 @@ import numpy as np
 from . import gui
 
 import ipywidgets as widgets
+from traitlets import Any, link
 
 __all__ = [
     'Reduction',
@@ -218,6 +219,7 @@ class Clipping(gui.ToggleContainer):
         self._sigma_clip = gui.ToggleMinMax(description="Sigma clip?")
         self.add_child(self._min_max)
         self.add_child(self._sigma_clip)
+        self.format()
 
     @property
     def min_max(self):
@@ -548,17 +550,17 @@ class CosmicRaySettings(gui.ToggleContainer):
         display(self)
 
 
-class AxisSelection(widgets.FlexBox):
+class AxisSelection(widgets.Box):
     """docstring for AxisSelection"""
     def __init__(self, *args, **kwd):
         super(AxisSelection, self).__init__(*args, **kwd)
+        self.layout.display = 'flex'
         values = OrderedDict()
         values["axis 0"] = 0
         values["axis 1"] = 1
         drop_desc = ('Region is along all of')
 
-        self._pre = widgets.ToggleButtons(description=drop_desc,
-                                          options=values)
+        self._pre = self._make_pre_widget(drop_desc, values)
         self._start = widgets.IntText(description='and on the other axis from index ')
         self._stop = widgets.IntText(description='up to (but not including):')
         self.children = [
@@ -572,9 +574,21 @@ class AxisSelection(widgets.FlexBox):
                for child in self.children]
         return ' '.join(gob)
 
+    def _make_pre_widget(self, description, values):
+        box = widgets.HBox(description=description)
+        text = widgets.Label(value=description)
+        toggles = widgets.ToggleButtons(options=values)
+        # Vertically align text and toggles.
+        box.layout.align_items = 'center'
+        box.children = [text, toggles]
+        box.add_traits(value=Any(sync=True, default_value=toggles.value))
+
+        link((box, 'value'), (toggles, 'value'))
+        return box
+
     @property
     def full_axis(self):
-        return self._pre.value
+        return self._pre.children[1].value
 
     @property
     def start(self):
@@ -586,9 +600,9 @@ class AxisSelection(widgets.FlexBox):
 
     def format(self):
         # self._start.set_css('width', '30px')
-        self._start.width = '5em'
+        self._start.layout.width = '10em'
         # self._stop.set_css('width', '30px')
-        self._stop.width = '5em'
+        self._stop.layout.width = '10em'
 
 
 class Slice(gui.ToggleContainer):
