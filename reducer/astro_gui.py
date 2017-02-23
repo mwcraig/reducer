@@ -427,10 +427,8 @@ class Combiner(ReducerBase):
     def is_sane(self):
         # Start with the default sanity determination...
         sanity = super(Combiner, self).is_sane
-        # ...but flip to insane if neither clipping nor combination is
-        # selected.
-        sanity = sanity and (self._clipping_widget.toggle.value or
-                             self._combine_method.toggle.value)
+        # ...but flip to insane if combination is not selected.
+        sanity = sanity and self._combine_method.toggle.value
         return sanity
 
     def format(self):
