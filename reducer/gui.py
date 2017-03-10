@@ -61,7 +61,7 @@ class CheckboxPlus(widgets.Box):
         self.children = children
 
 
-class ToggleContainer(widgets.Box):
+class ToggleContainer(widgets.VBox):
     """
     A widget whose state controls the visibility of its chilren.
 
