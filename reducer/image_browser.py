@@ -239,7 +239,7 @@ class FitsViewer(object):
 
         self._image_box = widgets.VBox()
         self._image = widgets.Image()
-        self._image_title = widgets.Latex()
+        self._image_title = widgets.Label()
         self._image_box.children = [self._image, self._image_title]
 
         self._header_box = widgets.VBox()
@@ -323,7 +323,7 @@ class FitsViewer(object):
         return set_fits_file
 
 
-class ImageBrowser(widgets.FlexBox):
+class ImageBrowser(widgets.Box):
     """
     Browse a tree of FITS images and view image/header.
 
