@@ -2,7 +2,7 @@ from __future__ import (division, print_function, absolute_import,
                         unicode_literals)
 
 import ipywidgets as widgets
-from traitlets import link, Bool, observe
+from traitlets import link, Bool, observe, Unicode
 
 __all__ = [
     'ToggleContainer',
@@ -353,6 +353,28 @@ class ToggleMinMax(ToggleContainer):
             base += '\n' + '\n'.join(indented_kids)
         return base
 
+
+def _set_visibility(change):
+    """
+    Update whether the child container is visible using the ipywidgets 6
+    approah.
+    """
+
+    target_widget = change['owner']
+    cached_display = target_widget._visible_layout_display
+
+    if change['new']:
+        target_widget.layout.visibility = 'visible'
+        if cached_display is not None:
+            target_widget.layout.display = cached_display
+        target_widget._visible_layout_display = None
+    else:
+        target_widget.layout.visibility = 'hidden'
+        target_widget._visible_layout_display = cached_display or 'flex'
+        # This removes the element from the layout on screen.
+        target_widget.layout.display = 'none'
+
+
 class ToggleGo(ToggleContainer):
     """
     ToggleContainer whose state is linked to a button.
@@ -362,7 +384,13 @@ class ToggleGo(ToggleContainer):
     """
     def __init__(self, *args, **kwd):
         super(ToggleGo, self).__init__(*args, **kwd)
-        self._go_container = widgets.HBox(visible=self.toggle.value)
+        self._go_container = widgets.HBox()
+        traits = {
+            'visible': Bool(),
+            '_visible_layout_display': Unicode(allow_none=True, default_value=None)
+        }
+        self._go_container.add_traits(**traits)
+        self._go_container.observe(_set_visibility, 'visible')
         self._go_button = widgets.Button(description="Lock settings and Go!",
                                          disabled=True)
         self._go_button.layout.display = 'none'
