@@ -107,7 +107,7 @@ class ToggleContainer(widgets.VBox):
         self._toggle_container = widgets.Box(description='toggle holder')
         self._checkbox = toggle_types[toggle_type](description=self.description)
         self._toggle_container.children = [self._checkbox]
-        self._container = widgets.Box(description="Toggle-able container")
+        self._container = widgets.VBox(description="Toggle-able container")
         self._state_monitor_container = widgets.Box(description="For internal use only", visibility='hidden')
         self._state_monitor_container.layout.visibility = 'hidden'
         self._state_monitor_container.display = 'none'
