@@ -400,8 +400,7 @@ class ToggleGo(ToggleContainer):
         self._go_container.children = [self._go_button, self._change_settings]
         self._progress_container = widgets.Box()
         self._progress_bar = widgets.FloatProgress(min=0, max=1.0,
-                                                   step=0.01, value=0.0,
-                                                   visible=False)
+                                                   step=0.01, value=0.0)
         self._progress_bar.layout.display = 'none'
         self._progress_container.children = [self._progress_bar]
         # we want the go button to be in a container below the
