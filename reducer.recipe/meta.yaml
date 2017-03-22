@@ -43,7 +43,7 @@ requirements:
     - numpy
     - scipy
     - scikit-image
-    - ipywidgets 5.*
+    - ipywidgets 6.*
     - msumastro >=0.9
     - ccdproc >=1
     - matplotlib
@@ -67,7 +67,7 @@ test:
     - astropy >=1.0
     - ccdproc >=1
     - dask
-    - ipywidgets >=4.0.1,<5
+    - ipywidgets 6.*
     - matplotlib
     - msumastro >=0.9
     - numpy
