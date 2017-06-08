@@ -120,7 +120,8 @@ class ImageTree(object):
             except IndexError:
                 key = ''
             if depth == 0:
-                self._top = Accordion(description=key)
+                self._top = Accordion()
+                self._top.description = key
                 # self._top.selected_index = -1
                 self._gui_objects[parent_string] = self._top
 
@@ -131,7 +132,8 @@ class ImageTree(object):
                 child_objects = []
                 for child in children:
                     desc = ": ".join([key, str(child)])
-                    child_container = Accordion(description=desc)
+                    child_container = Accordion()
+                    child_container.description = desc
                     # Make sure all panels start out closed.
                     # child_container.selected_index = -1
                     child_container.parent = self._gui_objects[parent_string]
@@ -161,7 +163,8 @@ class ImageTree(object):
                                                  s_or_not[n_files > 1])
 
                 # Place the box between the Select and the parent Accordion
-                parent = widgets.Box(description=desc)
+                parent = widgets.Box()
+                parent.description = desc
                 parent.children = [new_text]
                 parent.parent = grandparent
                 self._replace_child(grandparent, old=old_parent, new=parent)
