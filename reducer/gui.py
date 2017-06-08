@@ -97,6 +97,8 @@ class ToggleContainer(widgets.VBox):
     visible = Bool(default_value=False)
 
     def __init__(self, *args, **kwd):
+        self.description = kwd.pop('description', '')
+
         toggle_types = {'checkbox': CheckboxPlus,
                         'button': widgets.ToggleButton}
         toggle_type = kwd.pop('toggle_type', 'checkbox')
@@ -104,11 +106,17 @@ class ToggleContainer(widgets.VBox):
             raise ValueError('toggle_type must be one of '
                              '{}'.format(toggle_type.keys()))
         super(ToggleContainer, self).__init__(*args, **kwd)
-        self._toggle_container = widgets.Box(description='toggle holder')
+        self._toggle_container = widgets.Box()
+        # Boxes no longer have a description in ipywidgets 7 so add one here
+        self._toggle_container.description = 'toggle holder'
         self._checkbox = toggle_types[toggle_type](description=self.description)
         self._toggle_container.children = [self._checkbox]
-        self._container = widgets.VBox(description="Toggle-able container")
-        self._state_monitor_container = widgets.Box(description="For internal use only", visibility='hidden')
+        self._container = widgets.VBox()
+        # Boxes no longer have a description in ipywidgets 7 so add one here
+        self._container.description = "Toggle-able container"
+        self._state_monitor_container = widgets.Box(visibility='hidden')
+        # Boxes no longer have a description in ipywidgets 7 so add one here
+        self._state_monitor_container.description = "For internal use only"
         self._state_monitor_container.layout.visibility = 'hidden'
         self._state_monitor_container.display = 'none'
         self._state_monitor = widgets.Checkbox(visibility='hidden')

@@ -575,7 +575,8 @@ class AxisSelection(widgets.Box):
         return ' '.join(gob)
 
     def _make_pre_widget(self, description, values):
-        box = widgets.HBox(description=description)
+        box = widgets.HBox()
+        box.description = description
         text = widgets.Label(value=description)
         toggles = widgets.ToggleButtons(options=values)
         # Vertically align text and toggles.
