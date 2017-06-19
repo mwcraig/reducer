@@ -247,6 +247,8 @@ class FitsViewer(object):
 
         self._header_box = widgets.VBox()
         self._header_display = widgets.Textarea(disabled=True)
+        self._header_display.layout.width = '50rem'
+        self._header_display.layout.height = '20rem'
         self._header_box.children = [self._header_display]
         self._top.children = [self._image_box, self._header_box]
 
