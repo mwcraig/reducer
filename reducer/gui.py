@@ -40,7 +40,10 @@ class CheckboxPlus(widgets.Box):
         description = kwd.pop('description', '')
         super(CheckboxPlus, self).__init__(*arg, **kwd)
 
-        self._check = widgets.Checkbox()
+        # Set the description to an empty string to ensure no space
+        # is left for it.
+        self._check = widgets.Checkbox(description='',
+                                       style={'description_width': 'initial'})
         self._description = widgets.Label(value=description)
         children = [self._check, self._description]
         if not box_first:
