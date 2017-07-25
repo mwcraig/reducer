@@ -198,10 +198,10 @@ class ImageTree(object):
         """
         for name, obj in six.iteritems(self._gui_objects):
             if isinstance(obj, Accordion):
-                obj.selected_index = -1
+                obj.selected_index = None
                 for idx, child in enumerate(obj.children):
                     if isinstance(child, Accordion):
-                        child.selected_index = -1
+                        child.selected_index = None
                     elif isinstance(child, widgets.Box):
                         child.children[0].width = "15em"
 
