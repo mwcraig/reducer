@@ -132,6 +132,8 @@ class Reduction(ReducerBase):
         if not self.image_collection:
             raise ValueError("No images to reduce")
         self.progress_bar.visible = True
+        self.progress_bar.layout.visbility = 'visible'
+        self.progress_bar.layout.display = 'flex'
 
         # Refresh in case files have been added since the widget was created.
         self.image_collection.refresh()
@@ -191,6 +193,7 @@ class Reduction(ReducerBase):
                   "overwrite existing files.")
         finally:
             self.progress_bar.visible = False
+            self.progress_bar.layout.display = 'none'
 
     def _disable_all_others(self):
         if not self._copy_only:
@@ -453,6 +456,8 @@ class Combiner(ReducerBase):
     def action(self):
         self.progress_bar.visible = True
         self.progress_bar.value = 1.0
+        self.progress_bar.layout.visbility = 'visible'
+        self.progress_bar.layout.display = 'flex'
 
         # Refresh image collection in case files were added after widget was
         # created.
@@ -474,6 +479,7 @@ class Combiner(ReducerBase):
             combined.write(dest_path)
             self._combined = combined
         self.progress_bar.visible = False
+        self.progress_bar.layout.display = 'none'
 
     def _action_for_one_group(self, filter_dict=None):
         combined_dict = self.apply_to.copy()
