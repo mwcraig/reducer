@@ -647,24 +647,31 @@ class MasterImageSource(widgets.Box):
     """docstring for ReductionSource"""
     def __init__(self):
         super(MasterImageSource, self).__init__(description="Reduction choices")
-        self._source_dict = {'Created in this notebook': 'notebook',
-                             'File on disk': 'disk'}
 
+        self._source_list = [('Created in this notebook', 'notebook'),
+                             ('File on disk', 'disk')]
         self._source = widgets.ToggleButtons(description='Source:',
-                                                   options=self._source_dict)
-        self._source.on_trait_change(self._file_select_visibility(),
-                                     str('value_name'))
+                                             options=self._source_list)
+        self._source.observe(self._file_select_visibility(),
+                                     str('index'))
+
         self._file_select = widgets.Dropdown(description="Select file:",
-                                                   options=["Not working yet"],
-                                                   visible=False)
+                                             options=["Not working yet"])
+        self._file_select.layout.display = 'none'
         self.children = [self._source, self._file_select]
 
     def __str__(self):
         return self._source.description + ' ' + str(self._source.value)
 
     def _file_select_visibility(self):
-        def file_visibility(name, value):
-            self._file_select.visible = self._source_dict[value] == 'disk'
+        def file_visibility(change):
+            value = change['new']
+            self._file_select.visible = self._source_list[value][1] == 'disk'
+            if self._file_select.visible:
+                self._file_select.layout.display = 'flex'
+                self._file_select.layout.visbility = 'visible'
+            else:
+                self._file_select.layout.display = 'none'
         return file_visibility
 
 
