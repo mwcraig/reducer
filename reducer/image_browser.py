@@ -144,6 +144,7 @@ class ImageTree(object):
             # Do I have only a list? Populate a select box with those...
             if index:
                 new_text = widgets.Select(options=index)
+                new_text.layout.width = '100%'
                 index_string = self._id_string([parent_string, 'files'])
                 self._gui_objects[index_string] = new_text
 
@@ -242,6 +243,8 @@ class FitsViewer(object):
 
         self._image_box = widgets.VBox()
         self._image = widgets.Image()
+        # Do this so the initial display looks ok.
+        self._image.layout.min_width = '400px'
         self._image_title = widgets.Label()
         self._image_box.children = [self._image, self._image_title]
 
@@ -273,7 +276,6 @@ class FitsViewer(object):
         """
         self._top.set_title(0, 'Image')
         self._top.set_title(1, 'Header')
-        # self._header_display.set_css('height', '300px')
         self._header_display.height = '400px'
         self._header_display.width = '500px'
 
