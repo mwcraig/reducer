@@ -34,6 +34,7 @@ class CheckboxPlus(widgets.Box):
     # does not have a value by default. We will link this to the value of
     # the actual checkbox below.
     value = Bool(default_value=False)
+    disabled = Bool(default_value=False)
 
     def __init__(self, *arg, **kwd):
         box_first = kwd.pop('box_first', False)
@@ -60,6 +61,8 @@ class CheckboxPlus(widgets.Box):
 
         # Tie this widget's value to the value of the actual checkbox.
         link((self, 'value'), (self._check, 'value'))
+        # Tie this widget's disabled state to that of the actual checkbox.
+        link((self, 'disabled'), (self._check, 'disabled'))
 
         self.children = children
 
