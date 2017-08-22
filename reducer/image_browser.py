@@ -11,7 +11,7 @@ import matplotlib.image as mimg
 
 from astropy.io import fits
 from astropy.extern import six
-from astropy.visualization import scale_image
+from astropy.visualization import scale_image, simple_norm
 from astropy.nddata.utils import block_reduce
 
 
@@ -216,16 +216,16 @@ def ndarray_to_png(x, min_percent=20, max_percent=99.5):
 
     width = 600  # pixels
     downsample = (shape[0] // width) + 1
-    scaled_data = scale_image(x,
-                              min_percent=min_percent,
-                              max_percent=max_percent)
 
     if downsample > 1:
-        scaled_data = block_reduce(scaled_data,
-                                   block_size=(downsample, downsample))
+        x = block_reduce(x,
+                         block_size=(downsample, downsample))
 
+    norm = simple_norm(x,
+                       min_percent=min_percent,
+                       max_percent=max_percent)
     img_buffer = BytesIO()
-    mimg.imsave(img_buffer, scaled_data, format='png', cmap='gray')
+    mimg.imsave(img_buffer, norm(x), format='png', cmap='gray')
     return img_buffer.getvalue()
 
 
