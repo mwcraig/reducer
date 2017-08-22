@@ -564,14 +564,20 @@ class AxisSelection(widgets.Box):
         values = OrderedDict()
         values["axis 0"] = 0
         values["axis 1"] = 1
-        drop_desc = ('Region is along all of')
 
+        drop_desc = ('Region is all of')
         self._pre = self._make_pre_widget(drop_desc, values)
-        self._start = widgets.IntText(description='and on the other axis from index ')
-        self._stop = widgets.IntText(description='up to (but not including):')
+
+        style = {'description_width': 'initial'}
+        self._start_text = widgets.Label('and along the other axis from ')
+        self._start = widgets.IntText(style=style)
+        self._stop_text = widgets.Label('up to (but not including):')
+        self._stop = widgets.IntText(style=style)
         self.children = [
             self._pre,
+            self._start_text,
             self._start,
+            self._stop_text,
             self._stop
         ]
 
@@ -584,7 +590,8 @@ class AxisSelection(widgets.Box):
         box = widgets.HBox()
         box.description = description
         text = widgets.Label(value=description)
-        toggles = widgets.ToggleButtons(options=values)
+        style = {'button_width': 'initial'}
+        toggles = widgets.ToggleButtons(options=values, style=style)
         # Vertically align text and toggles.
         box.layout.align_items = 'center'
         box.children = [text, toggles]
@@ -607,9 +614,9 @@ class AxisSelection(widgets.Box):
 
     def format(self):
         # self._start.set_css('width', '30px')
-        self._start.layout.width = '10em'
+        self._start.layout.width = '5em'
         # self._stop.set_css('width', '30px')
-        self._stop.layout.width = '10em'
+        self._stop.layout.width = '5em'
 
 
 class Slice(gui.ToggleContainer):
