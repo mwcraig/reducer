@@ -353,7 +353,8 @@ class GroupBy(gui.ToggleContainer):
         super(GroupBy, self).__init__(*args, **kwd)
         self._keyword_list = override_str_factory(
             widgets.Text(description='Keywords (comma-separated)',
-                               value=input_value)
+                         value=input_value,
+                         style={'description_width': 'initial'})
         )
         self.add_child(self._keyword_list)
         if input_value:
