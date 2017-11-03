@@ -309,15 +309,17 @@ class Combine(gui.ToggleContainer):
         super(Combine, self).__init__(*args, **kwd)
         self._combine_option = override_str_factory(
             widgets.ToggleButtons(description="Combination method:",
-                                        options=['Average', 'Median'])
+                                  options=['Average', 'Median'],
+                                  style={'description_width': 'initial'})
         )
 
         self.add_child(self._combine_option)
         self._scaling = gui.ToggleContainer(description="Scale before combining?")
-        scal_desc = "Which property should scale to same value?"
+        scal_desc = "Which should scale to same value?"
         self._scale_by = override_str_factory(
             widgets.RadioButtons(description=scal_desc,
-                                       options=['mean', 'median'])
+                                 options=['mean', 'median'],
+                                 style={'description_width': 'initial'})
         )
         self._scaling.add_child(self._scale_by)
         self.add_child(self._scaling)
