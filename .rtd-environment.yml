@@ -3,10 +3,10 @@ name: redu-clean2
 channels:
   - astropy
   - mwcraig
+  - conda-forge
 
 dependencies:
   - astropy
-  - astropy-helpers
   - astroscrappy
   - backports
   - backports_abc
@@ -94,3 +94,4 @@ dependencies:
     - ipython-genutils
     - jupyter-client
     - jupyter-core
+    - sphinx-automodapi
