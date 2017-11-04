@@ -1,4 +1,4 @@
-include README.rst CHANGES.rst CONTRIBUTORS.rst
+include README.rst CHANGES.rst CONTRIBUTORS.rst LICENSE.rst
 recursive-include reducer reducer-template.ipynb  *.tbz2
 include versioneer.py
 include reducer/_version.py
