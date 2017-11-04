@@ -37,8 +37,7 @@ extensions = [
     'sphinx.ext.viewcode',
 ]
 
-extensions.extend(['astropy_helpers.sphinx.ext.automodapi',
-                  'astropy_helpers.sphinx.ext.numpydoc'])
+extensions.extend(['sphinx_automodapi.automodapi'])
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['_templates']
