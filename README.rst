@@ -34,7 +34,7 @@ To install using ``conda``:
 
 ::
 
-    conda install -c mwcraig -c astropy reducer
+    conda install -c conda-forge -c astropy reducer
 
 
 If you prefer, you can install with pip in any python distribution (but may
