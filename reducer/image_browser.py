@@ -1,6 +1,3 @@
-from __future__ import (division, print_function, absolute_import,
-                        unicode_literals)
-
 from collections import OrderedDict
 import os
 from io import BytesIO
@@ -10,7 +7,6 @@ import numpy as np
 import matplotlib.image as mimg
 
 from astropy.io import fits
-from astropy.extern import six
 from astropy.visualization import simple_norm
 from astropy.nddata.utils import block_reduce
 
@@ -183,7 +179,7 @@ class ImageTree(object):
 
         This should apparently be done *before* the widget is displayed.
         """
-        for name, obj in six.iteritems(self._gui_objects):
+        for name, obj in self._gui_objects.items():
             if isinstance(obj, Accordion):
                 for idx, child in enumerate(obj.children):
                     if not isinstance(child, widgets.Select):
@@ -197,7 +193,7 @@ class ImageTree(object):
         because doing it before (at least ipywidgets 5.1.5 and lower) causes
         a javascript error which prevents properly setting the titles.
         """
-        for name, obj in six.iteritems(self._gui_objects):
+        for name, obj in self._gui_objects.items():
             if isinstance(obj, Accordion):
                 obj.selected_index = None
                 for idx, child in enumerate(obj.children):
