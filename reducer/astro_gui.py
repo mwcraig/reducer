@@ -1,13 +1,9 @@
-from __future__ import (division, print_function, absolute_import,
-                        unicode_literals)
-
 from collections import OrderedDict
 import os
 import warnings
 
 from astropy.modeling import models
 import ccdproc
-from astropy.extern import six
 from astropy.stats import median_absolute_deviation
 
 import numpy as np
@@ -50,7 +46,7 @@ REDUCE_IMAGE_DTYPE_MAPPING = {
 
 # The limit below is used  by the combining function to decide whether or
 # not the image should be broken up into chunks.
-DEFAULT_MEMORY_LIMIT = 4e9  # roughly 4GB
+DEFAULT_MEMORY_LIMIT = 1e9  # roughly 4GB
 
 
 class ReducerBase(gui.ToggleGo):
@@ -186,7 +182,7 @@ class Reduction(ReducerBase):
 
                 self.progress_bar.description = \
                     ("Processed file {} of {}".format(current_file, n_files))
-                self.progress_bar.value = current_file/n_files
+                self.progress_bar.value = current_file / n_files
         except IOError:
             print("One or more of the reduced images already exists. Delete "
                   "those files and try again. This notebook will NOT "
@@ -333,9 +329,9 @@ class Combine(gui.ToggleContainer):
         if not self._scaling.toggle.value:
             return None
         if self._scale_by.value == 'mean':
-            return lambda arr: 1/np.ma.average(arr)
+            return lambda arr: 1 / np.ma.average(arr)
         elif self._scale_by.value == 'median':
-            return lambda arr: 1/np.ma.median(arr)
+            return lambda arr: 1 / np.ma.median(arr)
 
     @property
     def is_sane(self):
@@ -386,7 +382,6 @@ class GroupBy(gui.ToggleContainer):
             d = {c: row[c] for c in combine_groups.colnames}
             group_list.append(d)
 
-        #print(group_list)
         return group_list
 
 
@@ -472,7 +467,7 @@ class Combiner(ReducerBase):
                  "(may take several minutes)".format(idx + 1, n_groups))
             combined = self._action_for_one_group(combo_group)
             name_addons = ['_'.join([str(k), str(v)])
-                           for k, v in six.iteritems(combo_group)]
+                           for k, v in combo_group.items()]
             fname = [self._file_base_name]
             fname.extend(name_addons)
             fname = '_'.join(fname) + '.fit'
@@ -884,7 +879,7 @@ class PolynomialDropdown(widgets.Dropdown):
             value=1)
 
     def __str__(self):
-        for k, v in six.iteritems(self.options):
+        for k, v in self.options.items():
             if v == self.value:
                 return k
 

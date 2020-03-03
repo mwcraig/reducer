@@ -74,7 +74,6 @@ dependencies:
   - simplegeneric
   - singledispatch
   - sip
-  - six
   - sqlite
   - ssl_match_hostname
   - terminado

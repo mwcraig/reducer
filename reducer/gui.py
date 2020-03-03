@@ -1,6 +1,3 @@
-from __future__ import (division, print_function, absolute_import,
-                        unicode_literals)
-
 import ipywidgets as widgets
 from traitlets import link, Bool, observe, Unicode
 
