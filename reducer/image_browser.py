@@ -221,8 +221,12 @@ def ndarray_to_png(x, min_percent=20, max_percent=99.5):
                        min_percent=min_percent,
                        max_percent=max_percent,
                        clip=True)
+
+    x = norm(x)
+    # Replace NaNs with black pixels
+    x = np.nan_to_num(x)
     img_buffer = BytesIO()
-    mimg.imsave(img_buffer, norm(x), format='png', cmap='gray')
+    mimg.imsave(img_buffer, x, format='png', cmap='gray')
     return img_buffer.getvalue()
 
 
