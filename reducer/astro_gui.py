@@ -963,7 +963,7 @@ class Trim(Slice):
     def __init__(self, *arg, **kwd):
         super(Trim, self).__init__(*arg, **kwd)
         # TODO: remove the line below sooner rather than later.
-        self._axis_selection._stop.value = 3073
+        self._axis_selection._stop.value = 4096
 
     def action(self, ccd):
         """
