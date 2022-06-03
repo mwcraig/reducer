@@ -8,7 +8,7 @@ import matplotlib.image as mimg
 
 from astropy.io import fits
 from astropy.visualization import simple_norm
-from astropy.nddata.utils import block_reduce
+from astropy.nddata import block_reduce
 
 
 import ipywidgets as widgets
