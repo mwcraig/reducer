@@ -693,7 +693,7 @@ class CalibrationStep(gui.ToggleContainer):
         self._master_source = kwd.pop('master_source', None)
         super(CalibrationStep, self).__init__(*args, **kwd)
         self._settings = MasterImageSource()
-        self.add_child(self._settings)
+        # self.add_child(self._settings)
 
         self._image_cache = {}
         self._match_on = []
