@@ -268,9 +268,7 @@ class Clipping(gui.ToggleContainer):
 
 def override_str_factory(obj):
     """
-    Factory to create a new class for an IPYthon widget in which the
-    ``__str__`` method is overridden with the widgets description and
-    value.
+    Override the __str__ method for widget classes
 
     Parameters
     ----------
@@ -283,18 +281,22 @@ def override_str_factory(obj):
 
     new_object : IPython widget with string method overridden
     """
-    from copy import copy
 
     def new_str_method(self):
         return ": ".join([str(self.description), str(self.value)])
 
-    new_instance = copy(obj)
+    # This used to use type create a new class, along these lines:
+    #   https://stackoverflow.com/questions/5918003/python-override-str-in-an-exception-instance
+    #
+    # That no longer seems to work, because using the class of the widget from type give a traitlets
+    # object not an ipywidgets object, and the value is no longer related to the UI setting.
+    #
+    # This new way works, but changes the __str__ for every widget type it touches.
+    # This whole thing really needs a re-design.
+
     original_class = type(obj)
-    new_class = type(original_class.__name__,
-                     (original_class,),
-                     {'__str__': new_str_method})
-    new_instance.__class__ = new_class
-    return new_instance
+    original_class.__str__ = new_str_method
+    return obj
 
 
 class Combine(gui.ToggleContainer):
@@ -798,11 +800,13 @@ class DarkScaleSetting(widgets.Box):
     """docstring for DarkScaleSetting"""
     def __init__(self, *arg, **kwd):
         super(DarkScaleSetting, self).__init__(*arg, **kwd)
-        value_dict = {'Yes': True, 'No': False}
-        self._scale = override_str_factory(\
+        value_dict = [('Yes', True), ('No', False)]  # {'Yes': True, 'No': False}
+
+        self._scale = \
+        override_str_factory(\
             widgets.ToggleButtons(\
                 description='Scale dark by exposure time (if needed)',
-                options=value_dict,
+                options=value_dict, #))
                 value=False))
         self.children = [self._scale]
 
