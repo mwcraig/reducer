@@ -123,6 +123,7 @@ class Reduction(ReducerBase):
                 self._disable_all_others(),
                 str('value')
             )
+        self.visible = kwd.pop('visible', True)
 
     def action(self):
         if not self.image_collection:
