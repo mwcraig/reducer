@@ -253,6 +253,12 @@ class ToggleContainer(widgets.VBox):
         self.container.children = temp
         self._child_notify_parent_on_change(child)
 
+    def get_children(self):
+        """
+        Return the children of the container part of the widget.
+        """
+        return slef.container.children
+
     def action(self):
         """
         Subclasses should override this method if they wish to associate an
