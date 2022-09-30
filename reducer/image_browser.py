@@ -326,7 +326,7 @@ class FitsViewer(object):
             self._header_display.value = repr(self._header)
             self._image.value = ndarray_to_png(self._data)
             self._image_title.value = os.path.basename(full_path)
-            self.top.visible = True
+            self._top.visible = True
 
         return set_fits_file
 
