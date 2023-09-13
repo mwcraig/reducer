@@ -13,6 +13,23 @@ Other Changes
 Bug fixes
 ^^^^^^^^^
 
+0.5.1 (2023-09-13)
+------------------
+
+General
+^^^^^^^
+
+New Features
+^^^^^^^^^^^^
+
+Other Changes
+^^^^^^^^^^^^^
+
+Bug fixes
+^^^^^^^^^
+
+- If there is a single image in a group in the image browser the name
+  of the image is now selectable. [#176]
 
 0.3.0 (2016-07-17)
 ------------------
