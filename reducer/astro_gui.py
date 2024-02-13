@@ -81,6 +81,7 @@ class ReducerBase(gui.ToggleGo):
         self._apply_to = kwd.pop('apply_to', None)
         self._destination = kwd.pop('destination', None)
         self._imagetype_map = kwd.pop('imagetype_map', DEFAULT_IMAGETYPE_MAP)
+        self._exposure_time_keyword = kwd.pop('exposure_keyword', 'exposure')
         super(ReducerBase, self).__init__(*arg, **kwd)
 
     @property
@@ -122,7 +123,7 @@ class Reduction(ReducerBase):
         self._trim = Trim(description='Trim (specify region to keep)?')
         self._cosmic_ray = CosmicRaySettings()
         self._bias_calib = BiasSubtract(master_source=self._master_source, imagetype_map=self.imagetype_map)
-        self._dark_calib = DarkSubtract(master_source=self._master_source, imagetype_map=self.imagetype_map)
+        self._dark_calib = DarkSubtract(master_source=self._master_source, imagetype_map=self.imagetype_map, exposure_keyword=self._exposure_time_keyword)
         self._flat_calib = FlatCorrect(master_source=self._master_source, imagetype_map=self.imagetype_map)
 
         if allow_copy:
@@ -856,9 +857,10 @@ class DarkSubtract(CalibrationStep):
     """
     def __init__(self, bias_image=None, **kwd):
         desc = kwd.pop('description', 'Subtract Dark?')
+        self.exposure_keyword = kwd.pop('exposure_keyword', 'exposure')
         kwd['description'] = desc
         super(DarkSubtract, self).__init__(**kwd)
-        self.match_on = ['exposure']
+        self.match_on = [self.exposure_keyword]
         self._scale = DarkScaleSetting()
         self.add_child(self._scale)
 
@@ -877,7 +879,7 @@ class DarkSubtract(CalibrationStep):
         else:
             master = self._master_image(select_dict)
         return ccdproc.subtract_dark(ccd, master,
-                                     exposure_time='exposure',
+                                     exposure_time=self.exposure_keyword,
                                      exposure_unit=u.second,
                                      scale=self._scale.scale)
 
