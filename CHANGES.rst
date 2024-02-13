@@ -13,6 +13,24 @@ Other Changes
 Bug fixes
 ^^^^^^^^^
 
+0.6.0 (2024-02-13)
+------------------
+
+General
+^^^^^^^
+
+New Features
+^^^^^^^^^^^^
+
+- Support non-IRAF image types. [#177]
+
+Other Changes
+^^^^^^^^^^^^^
+
+Bug fixes
+^^^^^^^^^
+
+
 0.5.1 (2023-09-13)
 ------------------
 
