@@ -49,6 +49,14 @@ REDUCE_IMAGE_DTYPE_MAPPING = {
 DEFAULT_MEMORY_LIMIT = 1e9  # roughly 4GB
 
 
+DEFAULT_IMAGETYPE_MAP = {
+    'bias': 'BIAS',
+    'dark': 'DARK',
+    'flat': 'FLAT',
+    'light': 'LIGHT'
+}
+
+
 class ReducerBase(gui.ToggleGo):
     """
     Base class for reduction and combination widgets that provides a couple
@@ -63,10 +71,16 @@ class ReducerBase(gui.ToggleGo):
 
     destination : str
         Directory in which reduced images will be stored.
+
+    imagetype_map : dict
+        Key-value pairs where the keys are "bias", "dark", "flat", and "light"
+        and the values are the values of the "imagetyp" keyword that will be
+        used to select the appropriate images.
     """
     def __init__(self, *arg, **kwd):
         self._apply_to = kwd.pop('apply_to', None)
         self._destination = kwd.pop('destination', None)
+        self._imagetype_map = kwd.pop('imagetype_map', DEFAULT_IMAGETYPE_MAP)
         super(ReducerBase, self).__init__(*arg, **kwd)
 
     @property
@@ -75,7 +89,19 @@ class ReducerBase(gui.ToggleGo):
 
     @property
     def apply_to(self):
-        return self._apply_to
+        """
+        Do some magical changing of the "imagetyp" keyword to the value
+        that will be used to select the appropriate images.
+        """
+        return_value = dict(self._apply_to)
+        for k, v in self._apply_to.items():
+            if k == 'imagetyp':
+                return_value[k] = self._imagetype_map[v]
+        return return_value
+
+    @property
+    def imagetype_map(self):
+        return self._imagetype_map
 
 
 class Reduction(ReducerBase):
@@ -692,6 +718,7 @@ class CalibrationStep(gui.ToggleContainer):
     """
     def __init__(self, *args, **kwd):
         self._master_source = kwd.pop('master_source', None)
+        self._imagetype_map = kwd.pop('imagetype_map', DEFAULT_IMAGETYPE_MAP)
         super(CalibrationStep, self).__init__(*args, **kwd)
         self._settings = MasterImageSource()
         # self.add_child(self._settings)
@@ -710,6 +737,10 @@ class CalibrationStep(gui.ToggleContainer):
     @match_on.setter
     def match_on(self, value):
         self._match_on = value
+
+    @property
+    def imagetype_map(self):
+        return self._imagetype_map
 
     def _master_image(self, selector, closest=None):
         """
@@ -792,7 +823,7 @@ class BiasSubtract(CalibrationStep):
         super(BiasSubtract, self).__init__(**kwd)
 
     def action(self, ccd):
-        select_dict = {'imagetyp': 'bias'}
+        select_dict = {'imagetyp': self.imagetype_map['bias']}
         master = self._master_image(select_dict)
         return ccdproc.subtract_bias(ccd, master)
 
@@ -833,7 +864,7 @@ class DarkSubtract(CalibrationStep):
 
     def action(self, ccd):
         from astropy import units as u
-        select_dict = {'imagetyp': 'dark'}
+        select_dict = {'imagetyp': self.imagetype_map['dark']}
         for keyword in self.match_on:
             if keyword in select_dict:
                 raise ValueError("Keyword {} already has a value set".format(keyword))
@@ -862,7 +893,7 @@ class FlatCorrect(CalibrationStep):
         self.match_on = ['filter']
 
     def action(self, ccd):
-        select_dict = {'imagetyp': 'flat'}
+        select_dict = {'imagetyp': self.imagetype_map['flat']}
         for keyword in self.match_on:
             if keyword in select_dict:
                 raise ValueError("Keyword {} already has a value set".format(keyword))
