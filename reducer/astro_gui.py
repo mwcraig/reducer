@@ -121,9 +121,9 @@ class Reduction(ReducerBase):
         self._overscan = Overscan(description='Subtract overscan?')
         self._trim = Trim(description='Trim (specify region to keep)?')
         self._cosmic_ray = CosmicRaySettings()
-        self._bias_calib = BiasSubtract(master_source=self._master_source)
-        self._dark_calib = DarkSubtract(master_source=self._master_source)
-        self._flat_calib = FlatCorrect(master_source=self._master_source)
+        self._bias_calib = BiasSubtract(master_source=self._master_source, imagetype_map=self.imagetype_map)
+        self._dark_calib = DarkSubtract(master_source=self._master_source, imagetype_map=self.imagetype_map)
+        self._flat_calib = FlatCorrect(master_source=self._master_source, imagetype_map=self.imagetype_map)
 
         if allow_copy:
             self._copy_only = CopyFiles()
