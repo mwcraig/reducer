@@ -13,6 +13,24 @@ Other Changes
 Bug fixes
 ^^^^^^^^^
 
+0.7.0 (2024-02-13)
+------------------
+
+General
+^^^^^^^
+
+New Features
+^^^^^^^^^^^^
+
+- Support several exposure time keyword names.
+
+Other Changes
+^^^^^^^^^^^^^
+
+Bug fixes
+^^^^^^^^^
+
+
 0.6.0 (2024-02-13)
 ------------------
 
