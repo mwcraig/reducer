@@ -22,7 +22,7 @@ classifiers = [
 dependencies = [
     "astropy>=4.0",
     "ccdproc>=2",
-    "daskjupyter-app-launcher",
+    "dask",
     "ipywidgets >=7.5",
     "matplotlib",
     "msumastro>=1",
