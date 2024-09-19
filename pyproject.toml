@@ -29,6 +29,7 @@ dependencies = [
     "numpy",
     "scikit-image",
     "scipy",
+    "jupyter-app-launcher",
 ]
 
 [project.optional-dependencies]

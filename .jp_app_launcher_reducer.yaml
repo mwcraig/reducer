@@ -1,0 +1,9 @@
+# Notebook in the "Stellarphot setup" section of the launcher
+
+- title: Image calibration
+  description: Settings for camera, observatory and passbands
+  source: ../reducer/reducer-template.ipynb
+  icon: ../reducer/stellarphot-logo.svg
+  cwd: not_used
+  type: notebook
+  catalog: Astro tools
