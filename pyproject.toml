@@ -1,0 +1,56 @@
+[build-system]
+requires = ["hatchling", "hatch-vcs"]
+build-backend = "hatchling.build"
+
+[project]
+name = "reducer"
+dynamic = ["version"]
+description = "Process FITS files"
+readme = "README.rst"
+license = "BSD-3-clause"
+authors = [
+    { name = "Matt Craig", email = "mcraig@mnstate.edu" },
+]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Science/Research",
+    "License :: OSI Approved :: BSD License",
+    "Programming Language :: Python :: 2.7",
+    "Programming Language :: Python :: 3",
+    "Topic :: Scientific/Engineering :: Astronomy",
+]
+dependencies = [
+    "astropy>=4.0",
+    "ccdproc>=2",
+    "daskjupyter-app-launcher",
+    "ipywidgets >=7.5",
+    "matplotlib",
+    "msumastro>=1",
+    "numpy",
+    "scikit-image",
+    "scipy",
+]
+
+[project.optional-dependencies]
+docs = [
+    "numpydoc",
+    "sphinx-argparse",
+    "sphinx_rtd_theme",
+]
+
+[project.scripts]
+reducer = "reducer:main"
+
+[project.urls]
+Homepage = "http://reducer.readthedocs.org"
+
+[tool.hatch.version]
+source = "vcs"
+
+[tool.hatch.build.hooks.vcs]
+version-file = "reducer/_version.py"
+
+[tool.hatch.build.targets.sdist]
+include = [
+    "/reducer",
+]

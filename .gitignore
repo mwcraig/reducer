@@ -4,3 +4,4 @@ reducer.egg-info
 docs/_build
 docs/api
 .ropeproject
+_version.py
