@@ -55,6 +55,7 @@ version-file = "reducer/_version.py"
 [tool.hatch.build.targets.sdist]
 include = [
     "/reducer",
+    ".jp_app_launcher_reducer.yaml",
 ]
 
 [tool.hatch.build.targets.wheel.shared-data]
