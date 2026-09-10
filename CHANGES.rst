@@ -1,18 +1,3 @@
-1.0.0 (unreleased)
-------------------
-
-General
-^^^^^^^
-
-New Features
-^^^^^^^^^^^^
-
-Other Changes
-^^^^^^^^^^^^^
-
-Bug fixes
-^^^^^^^^^
-
 0.9.0 (unreleased)
 ------------------
 
@@ -29,16 +14,14 @@ New Features
 Other Changes
 ^^^^^^^^^^^^^
 
-- Combining images uses much less memory. The combined image is accumulated
-  in the dtype chosen by ``REDUCE_IMAGE_DTYPE_MAPPING`` (float32 for data
-  originating as 8- or 16-bit integers, float64 otherwise) instead of always
-  in float64, the mask and uncertainty that ccdproc generates are discarded
-  as soon as combining is done if the input images have neither, only the
-  header of one input image is read instead of the whole image, and sigma
-  clipping uses astropy's ``median`` and ``mad_std`` selected by name through
-  ccdproc instead of the slower, higher memory defaults. The remaining fixed
-  memory cost inside ``ccdproc.combine`` is reported in
-  https://github.com/astropy/ccdproc/issues/1012.
+- Combining images uses far less memory; see #185 for details and
+  measurements. The remaining fixed cost inside ``ccdproc.combine`` is
+  reported in https://github.com/astropy/ccdproc/issues/1012. [#185]
+
+- Sigma clipping before combining now measures deviation with ``mad_std``
+  (1.4826 x MAD, an estimate of sigma) instead of the raw median absolute
+  deviation, so thresholds are in true sigma units and the same numeric
+  threshold is about 1.48x looser than in 0.8. [#185]
 
 - Combining raw integer frames (e.g. uint16) now produces a float32 master
   instead of casting the result back to the input integer type. Master files

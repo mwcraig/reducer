@@ -21,7 +21,7 @@ classifiers = [
 ]
 dependencies = [
     "astropy>=4.0",
-    "ccdproc>=2",
+    "ccdproc>=2.4",
     "dask",
     "ipywidgets >=7.5",
     "matplotlib",

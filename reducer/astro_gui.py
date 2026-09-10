@@ -190,8 +190,10 @@ class Reduction(ReducerBase):
                 # float64, which doubles the memory each image needs, so the
                 # data is cast back after each step below.
                 desired_dtype = REDUCE_IMAGE_DTYPE_MAPPING[hdu.data.dtype.name]
-                ccd = ccdproc.CCDData(hdu.data.astype(desired_dtype, copy=False),
-                                      meta=hdu.header, unit=unit)
+                # Assign back to the HDU so the original integer array is
+                # released now rather than after the last calibration step.
+                hdu.data = hdu.data.astype(desired_dtype, copy=False)
+                ccd = ccdproc.CCDData(hdu.data, meta=hdu.header, unit=unit)
                 for child in self.container.children:
                     if not child.toggle.value:
                         # Nothing to do for this child, so keep going.
@@ -947,11 +949,17 @@ class DarkSubtract(CalibrationStep):
             # Scale the dark here instead of letting ccdproc do it. ccdproc
             # multiplies by a float64 quantity, which promotes the master, and
             # then the result, to float64, roughly doubling the memory used.
-            ratio = master.data.dtype.type(ccd.header[self.exposure_keyword] /
-                               master.header[self.exposure_keyword])
-            master = ccdproc.CCDData(master.data * ratio,
-                                     unit=master.unit,
-                                     meta=master.meta.copy())
+            # Once https://github.com/astropy/ccdproc/issues/1013 is fixed
+            # this block can go and ``scale=self._scale.scale`` can be passed
+            # to ``subtract_dark`` again.
+            scale_dtype = np.result_type(master.data.dtype, np.float32)
+            ratio = scale_dtype.type(ccd.header[self.exposure_keyword] /
+                                     master.header[self.exposure_keyword])
+            # No-op for the float32 masters reducer writes; keeps an integer
+            # master (e.g. from other software) from being promoted to float64
+            # by the multiply below.
+            master.data = master.data.astype(scale_dtype, copy=False)
+            master = master.multiply(ratio, handle_meta='first_found')
         else:
             master = self._master_image(select_dict)
         return ccdproc.subtract_dark(ccd, master,
