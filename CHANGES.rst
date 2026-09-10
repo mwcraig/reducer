@@ -13,7 +13,7 @@ Other Changes
 Bug fixes
 ^^^^^^^^^
 
-0.8.3 (unreleased)
+0.9.0 (unreleased)
 ------------------
 
 General
