@@ -13,6 +13,68 @@ Other Changes
 Bug fixes
 ^^^^^^^^^
 
+0.8.3 (unreleased)
+------------------
+
+General
+^^^^^^^
+
+New Features
+^^^^^^^^^^^^
+
+- ``Combiner`` takes a ``mem_limit`` argument that sets the memory limit used
+  when combining images. If it is not given the module-level
+  ``reducer.astro_gui.DEFAULT_MEMORY_LIMIT`` is used.
+
+Other Changes
+^^^^^^^^^^^^^
+
+- Combining images uses much less memory. The combined image is accumulated
+  in the dtype chosen by ``REDUCE_IMAGE_DTYPE_MAPPING`` (float32 for data
+  originating as 8- or 16-bit integers, float64 otherwise) instead of always
+  in float64, the mask and uncertainty that ccdproc generates are discarded
+  as soon as combining is done if the input images have neither, only the
+  header of one input image is read instead of the whole image, and sigma
+  clipping uses astropy's ``median`` and ``mad_std`` selected by name through
+  ccdproc instead of the slower, higher memory defaults. The remaining fixed
+  memory cost inside ``ccdproc.combine`` is reported in
+  https://github.com/astropy/ccdproc/issues/1012.
+
+- Combining raw integer frames (e.g. uint16) now produces a float32 master
+  instead of casting the result back to the input integer type. Master files
+  produced from raw frames are therefore about twice as large as before and
+  are no longer integer-valued. Masters combined from already-reduced
+  float32 frames are unchanged.
+
+- ``DEFAULT_MEMORY_LIMIT`` is now 5e7 bytes instead of 1e9, and its
+  documentation now describes what it actually controls. Peak memory while
+  combining is roughly two to three times this limit plus the size of one
+  output image.
+
+- ``Combiner`` no longer keeps the most recently combined image in memory.
+  The ``combined`` property now reads that image from disk each time it is
+  accessed and is ``None`` until images have been combined.
+
+- Reduction of an image is now done in the data type the reduced image will
+  be written in rather than allowing ccdproc to promote the image to float64,
+  and dark frames are scaled before subtraction rather than during it, which
+  avoids the same promotion. Both roughly halve the memory needed to reduce
+  an image. The promotion by ``ccdproc.subtract_dark`` is reported in
+  https://github.com/astropy/ccdproc/issues/1013.
+
+- Master calibration images are no longer kept in memory after a reduction
+  finishes; they are re-read the next time a reduction is run.
+
+- The template notebook's directory chooser now uses ``ipyfilechooser``
+  instead of ``ipyautoui``, saving roughly 85 MB of kernel memory per
+  notebook.
+
+- ``FitsViewer`` in the image browser no longer keeps the displayed image
+  array in memory.
+
+Bug fixes
+^^^^^^^^^
+
 0.7.0 (2024-02-13)
 ------------------
 

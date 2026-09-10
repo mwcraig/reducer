@@ -30,7 +30,7 @@ dependencies = [
     "scikit-image",
     "scipy",
     "jupyter-app-launcher",
-    "ipyautoui",
+    "ipyfilechooser",
 ]
 
 [project.optional-dependencies]
