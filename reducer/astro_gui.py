@@ -52,6 +52,14 @@ REDUCE_IMAGE_DTYPE_MAPPING = {
 DEFAULT_MEMORY_LIMIT = 5e7  # bytes
 
 
+def _no_uncertainty(data, axis=0):
+    """
+    Uncertainty function for ``ccdproc.combine`` that does no work; used
+    when the uncertainty it produces would be discarded anyway.
+    """
+    return np.zeros(data.shape[1:], dtype=data.dtype)
+
+
 DEFAULT_IMAGETYPE_MAP = {
     'bias': 'BIAS',
     'dark': 'DARK',
@@ -579,28 +587,34 @@ class Combiner(ReducerBase):
         if self._combine_method.scaling_func:
             combine_keyword_args['scale'] = self._combine_method.scaling_func
 
-        # Read only the header of one of the images being combined. Reading
-        # the image data too, as this used to, costs as much memory as one
-        # image and nothing but the header is needed here.
-        sample_header = fits.getheader(file_list[0])
-
-        # Determine the dtype of the images being combined from the header so
-        # that the combined image can be accumulated in an appropriate dtype
-        # instead of the float64 ccdproc uses by default. FITS has no unsigned
-        # integer type, so unsigned data is stored as signed with an offset in
-        # BZERO.
-        sample_dtype = fits.BITPIX2DTYPE[sample_header['bitpix']]
-        if sample_dtype.startswith('int') and sample_header.get('bzero', 0):
-            sample_dtype = 'u' + sample_dtype
-        combine_dtype = REDUCE_IMAGE_DTYPE_MAPPING.get(sample_dtype, 'float64')
-
-        # CCDData keeps the mask and uncertainty in extensions with these
-        # names. Looking at the names of the extensions does not read any
-        # image data.
+        # Read only the header and the extension names of one of the images
+        # being combined. Reading the image data too, as this used to, costs
+        # as much memory as one image and nothing but the header is needed
+        # here. CCDData keeps the mask and uncertainty in extensions with
+        # these names; looking at the names does not read any image data.
         with fits.open(file_list[0]) as sample_hdulist:
+            sample_header = sample_hdulist[0].header
             extension_names = [h.name.lower() for h in sample_hdulist]
         sample_has_mask = 'mask' in extension_names
         sample_has_uncertainty = 'uncert' in extension_names
+
+        # Determine the dtype of the images being combined from the header so
+        # that the combined image can be accumulated in an appropriate dtype
+        # instead of the float64 ccdproc uses by default. Signed and unsigned
+        # integers of the same width map to the same dtype, so BZERO does not
+        # need to be checked.
+        combine_dtype = REDUCE_IMAGE_DTYPE_MAPPING.get(
+            fits.BITPIX2DTYPE[sample_header['bitpix']], 'float64')
+
+        # ccdproc computes an uncertainty for the combined image whether or
+        # not the inputs have one. For a median combine that uncertainty is
+        # a MAD-based estimate that costs about as much as the combine
+        # itself, and it is thrown away below when the inputs have no
+        # uncertainty, so replace it with something trivial in that case.
+        if (combine_keyword_args.get('method') == 'median' and
+                not sample_has_mask and not sample_has_uncertainty):
+            combine_keyword_args['combine_uncertainty_function'] = \
+                _no_uncertainty
 
         # Use the limit set for this widget if there is one, and otherwise the
         # module-level default. The default is deliberately looked up here,
@@ -624,13 +638,6 @@ class Combiner(ReducerBase):
 
         combined.header = sample_header
         combined.header['master'] = True
-        if combined.data.dtype != combine_dtype:
-            combined.data = np.array(combined.data, dtype=combine_dtype)
-        try:
-            if isinstance(combined.uncertainty.array, np.ma.masked_array):
-                combined.uncertainty.array = np.array(combined.uncertainty.array)
-        except AttributeError:
-            pass
 
         return combined
 
