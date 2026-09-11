@@ -1,3 +1,23 @@
+0.9.2 (unreleased)
+------------------
+
+General
+^^^^^^^
+
+New Features
+^^^^^^^^^^^^
+
+Other Changes
+^^^^^^^^^^^^^
+
+- The image browser now reads a frame in horizontal bands, downsampling each
+  band as it is read, instead of loading the entire image to make the
+  preview. This cuts the memory needed to display an image to a small
+  fraction of the size of the image.
+
+Bug Fixes
+^^^^^^^^^
+
 0.9.1 (2026-09-11)
 ------------------
 
