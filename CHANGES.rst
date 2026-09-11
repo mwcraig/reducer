@@ -1,4 +1,25 @@
-0.9.0 (unreleased)
+0.9.1 (2026-09-11)
+------------------
+
+General
+^^^^^^^
+
+New Features
+^^^^^^^^^^^^
+
+Other Changes
+^^^^^^^^^^^^^
+
+- While reducing a set of images, each calibration step now keeps at most one
+  master image in memory instead of one per filter or exposure time. With
+  several filters this removes one full image of memory per filter from the
+  peak during light-frame reduction, at the cost of re-reading a master when
+  consecutive images need different ones.
+
+Bug Fixes
+^^^^^^^^^
+
+0.9.0 (2026-09-10)
 ------------------
 
 General
