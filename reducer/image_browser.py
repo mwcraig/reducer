@@ -238,8 +238,6 @@ class FitsViewer(object):
     """
     def __init__(self):
         self._top = widgets.Tab(visible=False)
-        self._data = None  # hdu.data
-        self._png_image = None  # ndarray_to_png(self._data)
         self._header = ''
 
         self._image_box = widgets.VBox()
@@ -321,10 +319,10 @@ class FitsViewer(object):
                     full_path = fits_file
             with fits.open(full_path) as hdulist:
                 hdu = hdulist[0]
-                self._data = hdu.data
                 self._header = hdu.header
+                png_bytes = ndarray_to_png(hdu.data)
             self._header_display.value = repr(self._header)
-            self._image.value = ndarray_to_png(self._data)
+            self._image.value = png_bytes
             self._image_title.value = os.path.basename(full_path)
             self.top.visible = True
 

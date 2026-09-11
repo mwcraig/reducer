@@ -2,9 +2,9 @@ from collections import OrderedDict
 import os
 import warnings
 
+from astropy.io import fits
 from astropy.modeling import models
 import ccdproc
-from astropy.stats import median_absolute_deviation
 
 import numpy as np
 
@@ -44,9 +44,20 @@ REDUCE_IMAGE_DTYPE_MAPPING = {
     'float64': 'float64'
 }
 
-# The limit below is used  by the combining function to decide whether or
-# not the image should be broken up into chunks.
-DEFAULT_MEMORY_LIMIT = 1e9  # roughly 4GB
+# The limit below, in bytes, is used by the combining function to decide how
+# large a chunk of the images to work on at one time. It is not the peak memory
+# use of the combine: measured peak is roughly 2 to 3 times this limit plus the
+# size of one output image. The value below therefore keeps the combine to a
+# few hundred MB even for 4096 x 4096 images.
+DEFAULT_MEMORY_LIMIT = 5e7  # bytes
+
+
+def _no_uncertainty(data, axis=0):
+    """
+    Uncertainty function for ``ccdproc.combine`` that does no work; used
+    when the uncertainty it produces would be discarded anyway.
+    """
+    return np.zeros(data.shape[1:], dtype=data.dtype)
 
 
 DEFAULT_IMAGETYPE_MAP = {
@@ -182,20 +193,26 @@ class Reduction(ReducerBase):
                     unit = hdu.header['BUNIT']
                 except KeyError:
                     unit = DEFAULT_IMAGE_UNIT
+                # Do the reduction in the dtype the output will be written
+                # in. Several of the ccdproc operations promote the data to
+                # float64, which doubles the memory each image needs, so the
+                # data is cast back after each step below.
+                desired_dtype = REDUCE_IMAGE_DTYPE_MAPPING[hdu.data.dtype.name]
+                # Assign back to the HDU so the original integer array is
+                # released now rather than after the last calibration step.
+                hdu.data = hdu.data.astype(desired_dtype, copy=False)
                 ccd = ccdproc.CCDData(hdu.data, meta=hdu.header, unit=unit)
                 for child in self.container.children:
                     if not child.toggle.value:
                         # Nothing to do for this child, so keep going.
                         continue
                     ccd = child.action(ccd)
+                    if ccd.data.dtype != desired_dtype:
+                        ccd.data = ccd.data.astype(desired_dtype)
 
-                input_dtype = hdu.data.dtype.name
                 hdu_tmp = ccd.to_hdu()[0]
                 hdu.header = hdu_tmp.header
                 hdu.data = hdu_tmp.data
-                desired_dtype = REDUCE_IMAGE_DTYPE_MAPPING[str(input_dtype)]
-                if desired_dtype != hdu.data.dtype:
-                    hdu.data = hdu.data.astype(desired_dtype)
 
                 # Workaround to ensure uint16 images are handled properly.
                 if 'bzero' in hdu.header:
@@ -211,11 +228,18 @@ class Reduction(ReducerBase):
                 self.progress_bar.description = \
                     ("Processed file {} of {}".format(current_file, n_files))
                 self.progress_bar.value = current_file / n_files
+
+                # Make sure this image is gone before the next one is read.
+                del ccd, hdu_tmp
         except IOError:
             print("One or more of the reduced images already exists. Delete "
                   "those files and try again. This notebook will NOT "
                   "overwrite existing files.")
         finally:
+            # Master images can be large, so do not keep them past the end of
+            # the reduction. They are re-read, cheaply, on the next run.
+            for child in self.container.children:
+                getattr(child, '_image_cache', {}).clear()
             self.progress_bar.visible = False
             self.progress_bar.layout.display = 'none'
 
@@ -424,11 +448,17 @@ class Combiner(ReducerBase):
 
     description : str, optional
         Text displayed next to check box for selecting options.
+
+    mem_limit : float, optional
+        Maximum memory, in bytes, that ``ccdproc.combine`` should use for a
+        chunk of the images being combined. If not set, the module-level
+        ``DEFAULT_MEMORY_LIMIT`` is used instead.
     """
     def __init__(self, *args, **kwd):
         group_by_in = kwd.pop('group_by', '')
         self._image_source = kwd.pop('image_source', None)
         self._file_base_name = kwd.pop('file_name_base', 'master')
+        self._mem_limit = kwd.pop('mem_limit', None)
         super(Combiner, self).__init__(*args, **kwd)
         self._clipping_widget = \
             Clipping(description="Clip before combining?")
@@ -443,14 +473,23 @@ class Combiner(ReducerBase):
                                        image_source=self._image_source)
         self.add_child(self._group_by)
 
-        self._combined = None
+        self._combined_path = None
 
     @property
     def combined(self):
         """
-        The combined image.
+        The most recently combined image, read from disk each time this is
+        accessed, or ``None`` if no image has been combined yet.
+
+        The image is not kept in memory because it can be large.
         """
-        return self._combined
+        if self._combined_path is None:
+            return None
+        try:
+            return ccdproc.CCDData.read(self._combined_path)
+        except ValueError:
+            return ccdproc.CCDData.read(self._combined_path,
+                                        unit=DEFAULT_IMAGE_UNIT)
 
     @property
     def image_source(self):
@@ -503,7 +542,10 @@ class Combiner(ReducerBase):
             fname = '_'.join(fname) + '.fit'
             dest_path = os.path.join(self.destination, fname)
             combined.write(dest_path)
-            self._combined = combined
+            self._combined_path = dest_path
+            # The combined image can be large, so do not hang on to it. The
+            # ``combined`` property re-reads it from disk if it is needed.
+            del combined
         self.progress_bar.visible = False
         self.progress_bar.layout.display = 'none'
 
@@ -536,32 +578,67 @@ class Combiner(ReducerBase):
                 self._clipping_widget.sigma_clip.min
             combine_keyword_args['sigma_clip_low_thresh'] = \
                 self._clipping_widget.sigma_clip.min
-            combine_keyword_args['sigma_clip_func'] = np.ma.median
-            combine_keyword_args['sigma_clip_dev_func'] = \
-                median_absolute_deviation
+            # Use the names of the clipping functions rather than the
+            # functions themselves; ccdproc has a faster, lower memory path
+            # for these.
+            combine_keyword_args['sigma_clip_func'] = 'median'
+            combine_keyword_args['sigma_clip_dev_func'] = 'mad_std'
 
         if self._combine_method.scaling_func:
             combine_keyword_args['scale'] = self._combine_method.scaling_func
 
+        # Read only the header and the extension names of one of the images
+        # being combined. Reading the image data too, as this used to, costs
+        # as much memory as one image and nothing but the header is needed
+        # here. CCDData keeps the mask and uncertainty in extensions with
+        # these names; looking at the names does not read any image data.
+        with fits.open(file_list[0]) as sample_hdulist:
+            sample_header = sample_hdulist[0].header
+            extension_names = [h.name.lower() for h in sample_hdulist]
+        sample_has_mask = 'mask' in extension_names
+        sample_has_uncertainty = 'uncert' in extension_names
+
+        # Determine the dtype of the images being combined from the header so
+        # that the combined image can be accumulated in an appropriate dtype
+        # instead of the float64 ccdproc uses by default. Signed and unsigned
+        # integers of the same width map to the same dtype, so BZERO does not
+        # need to be checked.
+        combine_dtype = REDUCE_IMAGE_DTYPE_MAPPING.get(
+            fits.BITPIX2DTYPE[sample_header['bitpix']], 'float64')
+
+        # ccdproc computes an uncertainty for the combined image whether or
+        # not the inputs have one. For a median combine that uncertainty is
+        # a MAD-based estimate that costs about as much as the combine
+        # itself, and it is thrown away below when the inputs have no
+        # uncertainty, so replace it with something trivial in that case.
+        if (combine_keyword_args.get('method') == 'median' and
+                not sample_has_mask and not sample_has_uncertainty):
+            combine_keyword_args['combine_uncertainty_function'] = \
+                _no_uncertainty
+
+        # Use the limit set for this widget if there is one, and otherwise the
+        # module-level default. The default is deliberately looked up here,
+        # when the combine happens, so that setting
+        # ``astro_gui.DEFAULT_MEMORY_LIMIT`` takes effect.
+        mem_limit = self._mem_limit
+        if mem_limit is None:
+            mem_limit = DEFAULT_MEMORY_LIMIT
+
         combined = ccdproc.combine(file_list,
-                                   mem_limit=DEFAULT_MEMORY_LIMIT,
+                                   mem_limit=mem_limit,
+                                   dtype=combine_dtype,
                                    **combine_keyword_args)
 
-        sample_image = ccdproc.CCDData.read(file_list[0])
-        combined.header = sample_image.header
-        combined.header['master'] = True
-        if combined.data.dtype != sample_image.dtype:
-            combined.data = np.array(combined.data, dtype=sample_image.dtype)
-        try:
-            if isinstance(combined.uncertainty.array, np.ma.masked_array):
-                combined.uncertainty.array = np.array(combined.uncertainty.array)
-        except AttributeError:
-            pass
-
-        # Do not keep the mask or uncertainty if the data has neither
-        if sample_image.mask is None and sample_image.uncertainty is None:
+        # Do not keep the mask or uncertainty if the data has neither. Do this
+        # before anything else because ccdproc.combine always makes both of
+        # them, and together they are larger than the combined image itself.
+        if not sample_has_mask and not sample_has_uncertainty:
             combined.mask = None
             combined.uncertainty = None
+
+        combined.header = sample_header
+        combined.header['master'] = True
+
         return combined
 
 
@@ -876,12 +953,26 @@ class DarkSubtract(CalibrationStep):
             if not 'subbias' in master.meta:
                 raise RuntimeError("Bias has not been subtracted from dark, "
                                    "so cannot scale dark")
+            # Scale the dark here instead of letting ccdproc do it. ccdproc
+            # multiplies by a float64 quantity, which promotes the master, and
+            # then the result, to float64, roughly doubling the memory used.
+            # Once https://github.com/astropy/ccdproc/issues/1013 is fixed
+            # this block can go and ``scale=self._scale.scale`` can be passed
+            # to ``subtract_dark`` again.
+            scale_dtype = np.result_type(master.data.dtype, np.float32)
+            ratio = scale_dtype.type(ccd.header[self.exposure_keyword] /
+                                     master.header[self.exposure_keyword])
+            # No-op for the float32 masters reducer writes; keeps an integer
+            # master (e.g. from other software) from being promoted to float64
+            # by the multiply below.
+            master.data = master.data.astype(scale_dtype, copy=False)
+            master = master.multiply(ratio, handle_meta='first_found')
         else:
             master = self._master_image(select_dict)
         return ccdproc.subtract_dark(ccd, master,
                                      exposure_time=self.exposure_keyword,
                                      exposure_unit=u.second,
-                                     scale=self._scale.scale)
+                                     scale=False)
 
 
 class FlatCorrect(CalibrationStep):
