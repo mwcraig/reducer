@@ -23,7 +23,11 @@ __all__ = [
     'FitsViewer',
     'ImageBrowser',
     'ndarray_to_png',
+    'hdu_to_png',
 ]
+
+# Width, in pixels, of the image displayed in the browser.
+_PNG_WIDTH = 600
 
 
 class ImageTree(object):
@@ -46,7 +50,7 @@ class ImageTree(object):
         self._create_gui()
         self._set_titles()
         # Generate an array to improve initial display time
-        ndarray_to_png(np.random.rand(1200, 1200))
+        ndarray_to_png(np.random.rand(64, 64))
 
     @property
     def top(self):
@@ -203,20 +207,11 @@ class ImageTree(object):
                         child.children[0].width = "15em"
 
 
-def ndarray_to_png(x, min_percent=20, max_percent=99.5):
-    shape = np.array(x.shape)
-    # Reverse order for reasons I do not understand...
-    shape = shape[::-1]
-    if len(shape) != 2:
-        return
-
-    width = 600  # pixels
-    downsample = (shape[0] // width) + 1
-
-    if downsample > 1:
-        x = block_reduce(x,
-                         block_size=(downsample, downsample))
-
+def _reduced_array_to_png(x, min_percent=20, max_percent=99.5):
+    """
+    Normalize an array that has already been downsampled and turn it into
+    the bytes of a PNG image.
+    """
     norm = simple_norm(x,
                        min_percent=min_percent,
                        max_percent=max_percent,
@@ -228,6 +223,56 @@ def ndarray_to_png(x, min_percent=20, max_percent=99.5):
     img_buffer = BytesIO()
     mimg.imsave(img_buffer, x, format='png', cmap='gray')
     return img_buffer.getvalue()
+
+
+def ndarray_to_png(x, min_percent=20, max_percent=99.5):
+    shape = np.array(x.shape)
+    # Reverse order for reasons I do not understand...
+    shape = shape[::-1]
+    if len(shape) != 2:
+        return
+
+    downsample = (shape[0] // _PNG_WIDTH) + 1
+
+    if downsample > 1:
+        x = block_reduce(x,
+                         block_size=(downsample, downsample))
+
+    return _reduced_array_to_png(x, min_percent=min_percent,
+                                 max_percent=max_percent)
+
+
+def hdu_to_png(hdu, min_percent=20, max_percent=99.5):
+    """
+    Make a PNG from the image in a FITS HDU without reading the whole
+    image into memory.
+
+    The image is read in horizontal bands, each of which is downsampled as
+    soon as it is read, so that only one band of the image is in memory at a
+    time. The result is the same as ``ndarray_to_png(hdu.data)``.
+    """
+    if len(hdu.shape) != 2:
+        return
+
+    ny, nx = hdu.shape
+    downsample = (nx // _PNG_WIDTH) + 1
+
+    if downsample == 1:
+        x = hdu.data
+    else:
+        # Read the image a band at a time. Each band is a whole number of
+        # blocks tall, and rows at the bottom that do not fill a block are
+        # dropped, which is what block_reduce does to the full image.
+        band_height = 100 * downsample
+        n_rows = ny - ny % downsample
+        bands = [block_reduce(hdu.section[start:min(start + band_height,
+                                                    n_rows), :],
+                              block_size=(downsample, downsample))
+                 for start in range(0, n_rows, band_height)]
+        x = np.vstack(bands)
+
+    return _reduced_array_to_png(x, min_percent=min_percent,
+                                 max_percent=max_percent)
 
 
 class FitsViewer(object):
@@ -320,7 +365,7 @@ class FitsViewer(object):
             with fits.open(full_path) as hdulist:
                 hdu = hdulist[0]
                 self._header = hdu.header
-                png_bytes = ndarray_to_png(hdu.data)
+                png_bytes = hdu_to_png(hdu)
             self._header_display.value = repr(self._header)
             self._image.value = png_bytes
             self._image_title.value = os.path.basename(full_path)
