@@ -867,6 +867,11 @@ class CalibrationStep(gui.ToggleContainer):
         try:
             return self._image_cache[path]
         except KeyError:
+            # Keep at most one master per calibration step. Images are often
+            # interleaved by filter or exposure, and re-reading a master costs
+            # a fraction of a second, whereas holding one master per filter
+            # for the whole reduction costs a full image of memory each.
+            self._image_cache.clear()
             # Try getting the unit form the FITS file, but force it to ADU
             try:
                 self._image_cache[path] = ccdproc.CCDData.read(path)
