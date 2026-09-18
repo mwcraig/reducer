@@ -42,6 +42,9 @@ def image_hdu(tmp_path):
 
 @pytest.mark.parametrize('block_size', [1, 3, 4, 8])
 def test_banded_matches_whole_image(image_hdu, block_size):
+    """Reducing in bands is bitwise identical to reducing the whole frame,
+    over several block sizes.
+    """
     # A band height that is small compared to the image so that several
     # bands are needed.
     banded = banded_block_reduce(image_hdu, block_size, band_rows=30)
@@ -50,6 +53,9 @@ def test_banded_matches_whole_image(image_hdu, block_size):
 
 
 def test_banded_band_size_does_not_matter(image_hdu):
+    """The result does not depend on band_rows, from smaller than one block
+    to larger than the image.
+    """
     whole = block_reduce(image_hdu.data, 4)
     for band_rows in [1, 4, 7, 30, 256, 10000]:
         banded = banded_block_reduce(image_hdu, 4, band_rows=band_rows)
@@ -57,18 +63,23 @@ def test_banded_band_size_does_not_matter(image_hdu):
 
 
 def test_banded_default_band_size(image_hdu):
+    """Omitting band_rows gives the same result as passing one."""
     banded = banded_block_reduce(image_hdu, 4)
     assert np.array_equal(banded, block_reduce(image_hdu.data, 4),
                           equal_nan=True)
 
 
 def test_banded_block_size_tuple(image_hdu):
+    """A (ny, nx) block_size reduces each axis by its own factor."""
     banded = banded_block_reduce(image_hdu, (4, 5), band_rows=30)
     whole = block_reduce(image_hdu.data, (4, 5))
     assert np.array_equal(banded, whole, equal_nan=True)
 
 
 def test_banded_preprocess_is_applied(image_hdu):
+    """preprocess runs on every band, and the clamp really changes the
+    result.
+    """
     def clamp(data):
         return np.clip(data, None, 1e5)
 
@@ -82,6 +93,9 @@ def test_banded_preprocess_is_applied(image_hdu):
 
 
 def test_banded_block_larger_than_image(image_hdu):
+    """A block taller than the image gives the same empty result
+    block_reduce does.
+    """
     block_size = IMAGE_SHAPE[0] + 10
     banded = banded_block_reduce(image_hdu, block_size)
     whole = block_reduce(image_hdu.data, block_size)
@@ -90,6 +104,7 @@ def test_banded_block_larger_than_image(image_hdu):
 
 
 def test_banded_non_2d_raises(tmp_path):
+    """A 3D HDU raises ValueError rather than silently reducing a slice."""
     path = tmp_path / 'cube.fits'
     fits.PrimaryHDU(np.zeros((3, 20, 20))).writeto(path)
     with fits.open(path) as hdulist:
@@ -98,6 +113,7 @@ def test_banded_non_2d_raises(tmp_path):
 
 
 def test_hdu_to_png_non_2d_returns_none(tmp_path):
+    """hdu_to_png returns None for a non-2D HDU instead of raising."""
     path = tmp_path / 'cube.fits'
     fits.PrimaryHDU(np.zeros((3, 20, 20))).writeto(path)
     with fits.open(path) as hdulist:
@@ -105,10 +121,14 @@ def test_hdu_to_png_non_2d_returns_none(tmp_path):
 
 
 def test_hdu_to_png_matches_ndarray_to_png(image_hdu):
+    """The banded HDU path and the whole-array path produce identical PNG bytes."""
     assert hdu_to_png(image_hdu) == ndarray_to_png(image_hdu.data)
 
 
 def test_png_is_grayscale_and_downsampled(image_hdu):
+    """The preview is a mode "L" PNG whose size is the block-reduced
+    shape.
+    """
     png_bytes = hdu_to_png(image_hdu)
     image = Image.open(BytesIO(png_bytes))
     assert image.mode == 'L'
@@ -121,6 +141,9 @@ def test_png_is_grayscale_and_downsampled(image_hdu):
 
 
 def test_png_of_big_image_is_downsampled(tmp_path):
+    """An image wider than _PNG_WIDTH is actually reduced, and both paths
+    still agree.
+    """
     # Wide enough that the preview really is reduced.
     path = tmp_path / 'big.fits'
     fits.PrimaryHDU(make_image((1300, 1801))).writeto(path)

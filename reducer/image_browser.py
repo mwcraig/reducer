@@ -217,14 +217,6 @@ def banded_block_reduce(hdu, block_size, band_rows=None, preprocess=None):
     Downsample the image in a FITS HDU by reading it in horizontal bands,
     without ever holding the full image in memory.
 
-    A full frame from a modern camera can be hundreds of megabytes, so
-    reading it, downsampling it and keeping both the original and the
-    downsampled array costs more memory than is available in a typical
-    multi-user notebook server. This function reads the image one band of
-    rows at a time, reduces each band as soon as it is read, and keeps only
-    the small reduced bands, so the memory needed is set by the size of one
-    band rather than by the size of the image.
-
     Parameters
     ----------
 
@@ -257,8 +249,21 @@ def banded_block_reduce(hdu, block_size, band_rows=None, preprocess=None):
         ``block_reduce(preprocess(hdu.data), block_size)``, including the way
         rows and columns at the end that do not fill a block are dropped.
 
+    Notes
+    -----
+
+    A full frame from a modern camera can be hundreds of megabytes, so
+    reading it, downsampling it and keeping both the original and the
+    downsampled array costs more memory than is available in a typical
+    multi-user notebook server. This function reads the image one band of
+    rows at a time, reduces each band as soon as it is read, and keeps only
+    the small reduced bands, so the memory needed is set by the size of one
+    band rather than by the size of the image.
+
     Examples
     --------
+
+    .. doctest-skip::
 
     >>> from astropy.io import fits
     >>> hdu = fits.PrimaryHDU(np.arange(64 * 64.).reshape(64, 64))
