@@ -263,11 +263,16 @@ def banded_block_reduce(hdu, block_size, band_rows=None, preprocess=None):
     Examples
     --------
 
+    The HDU must come from a file, because ``hdu.section`` reads from disk.
+
     .. doctest-skip::
 
+    >>> import numpy as np
     >>> from astropy.io import fits
-    >>> hdu = fits.PrimaryHDU(np.arange(64 * 64.).reshape(64, 64))
-    >>> small = banded_block_reduce(hdu, 8)
+    >>> image = np.arange(64 * 64.).reshape(64, 64)
+    >>> fits.PrimaryHDU(image).writeto('example.fits')
+    >>> with fits.open('example.fits') as hdulist:
+    ...     small = banded_block_reduce(hdulist[0], 8)
     >>> small.shape
     (8, 8)
     """
