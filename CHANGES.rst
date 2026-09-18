@@ -1,3 +1,30 @@
+0.9.3 (unreleased)
+------------------
+
+General
+^^^^^^^
+
+New Features
+^^^^^^^^^^^^
+
+- New function ``reducer.image_browser.banded_block_reduce`` downsamples the
+  image in a FITS HDU by reading it one horizontal band at a time, so the
+  full frame is never in memory. It takes an optional ``preprocess``
+  callable that is applied to each band as it is read. The image browser now
+  uses it to make previews, and it is public so that other projects can
+  reuse it instead of repeating the banded read.
+
+Other Changes
+^^^^^^^^^^^^^
+
+- Image previews in the browser are now encoded as grayscale (mode ``L``)
+  PNGs with Pillow instead of RGBA PNGs with matplotlib. The previews look
+  the same but are smaller, about a third fewer bytes for a preview of a
+  4096 x 4096 frame, and Pillow is now a dependency.
+
+Bug Fixes
+^^^^^^^^^
+
 0.9.2 (2026-09-11)
 ------------------
 
