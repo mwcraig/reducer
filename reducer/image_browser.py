@@ -4,7 +4,7 @@ from io import BytesIO
 
 import numpy as np
 
-import matplotlib.image as mimg
+from PIL import Image
 
 from astropy.io import fits
 from astropy.visualization import simple_norm
@@ -22,12 +22,17 @@ __all__ = [
     'ImageTree',
     'FitsViewer',
     'ImageBrowser',
+    'banded_block_reduce',
     'ndarray_to_png',
     'hdu_to_png',
 ]
 
 # Width, in pixels, of the image displayed in the browser.
 _PNG_WIDTH = 600
+
+# Rough number of rows to read at a time when reading an image in bands. The
+# actual number of rows is this, rounded down to a whole number of blocks.
+_BAND_ROWS = 256
 
 
 class ImageTree(object):
@@ -207,6 +212,106 @@ class ImageTree(object):
                         child.children[0].width = "15em"
 
 
+def banded_block_reduce(hdu, block_size, band_rows=None, preprocess=None):
+    """
+    Downsample the image in a FITS HDU by reading it in horizontal bands,
+    without ever holding the full image in memory.
+
+    A full frame from a modern camera can be hundreds of megabytes, so
+    reading it, downsampling it and keeping both the original and the
+    downsampled array costs more memory than is available in a typical
+    multi-user notebook server. This function reads the image one band of
+    rows at a time, reduces each band as soon as it is read, and keeps only
+    the small reduced bands, so the memory needed is set by the size of one
+    band rather than by the size of the image.
+
+    Parameters
+    ----------
+
+    hdu : astropy image HDU
+        Any object with a ``shape`` attribute and a ``section`` attribute
+        that supports slicing, e.g. `astropy.io.fits.ImageHDU` or
+        `astropy.io.fits.PrimaryHDU`. The image must be two-dimensional.
+
+    block_size : int or tuple of int
+        Size of the blocks to average over, either a single integer used for
+        both axes or a tuple ``(ny_block, nx_block)``.
+
+    band_rows : int, optional
+        Approximate number of rows to read at a time. The number actually
+        used is this value rounded down to a whole number of blocks, with a
+        minimum of one block, so that the result does not depend on the band
+        size. The default is roughly 256 rows.
+
+    preprocess : callable, optional
+        If given, it is called on each band as it is read and must return an
+        array; the returned array is what gets reduced. Use this for a dtype
+        cast or a clamp that would otherwise require a copy of the whole
+        image.
+
+    Returns
+    -------
+
+    `numpy.ndarray`
+        The reduced image. It is identical to
+        ``block_reduce(preprocess(hdu.data), block_size)``, including the way
+        rows and columns at the end that do not fill a block are dropped.
+
+    Examples
+    --------
+
+    >>> from astropy.io import fits
+    >>> hdu = fits.PrimaryHDU(np.arange(64 * 64.).reshape(64, 64))
+    >>> small = banded_block_reduce(hdu, 8)
+    >>> small.shape
+    (8, 8)
+    """
+    shape = hdu.shape
+
+    if len(shape) != 2:
+        raise ValueError('banded_block_reduce requires a 2D image, got '
+                         'shape {}'.format(tuple(shape)))
+
+    try:
+        ny_block, nx_block = block_size
+    except TypeError:
+        ny_block = nx_block = block_size
+
+    ny_block = int(ny_block)
+    nx_block = int(nx_block)
+
+    if ny_block < 1 or nx_block < 1:
+        raise ValueError('block_size must be at least 1, got '
+                         '{}'.format(block_size))
+
+    if band_rows is None:
+        band_rows = _BAND_ROWS
+
+    # Each band must be a whole number of blocks tall so that the result does
+    # not depend on where the bands happen to fall, and at least one block.
+    band_height = max(int(band_rows) // ny_block, 1) * ny_block
+
+    ny = shape[0]
+    # Rows at the end that do not fill a block are dropped, which is what
+    # block_reduce does to the full image.
+    n_rows = ny - ny % ny_block
+
+    starts = list(range(0, n_rows, band_height))
+    if not starts:
+        # Fewer rows than one block, so the result is empty. Go through the
+        # loop once anyway to get the shape block_reduce would give.
+        starts = [0]
+
+    bands = []
+    for start in starts:
+        band = hdu.section[start:min(start + band_height, n_rows), :]
+        if preprocess is not None:
+            band = preprocess(band)
+        bands.append(block_reduce(band, block_size=(ny_block, nx_block)))
+
+    return np.concatenate(bands, axis=0)
+
+
 def _reduced_array_to_png(x, min_percent=20, max_percent=99.5):
     """
     Normalize an array that has already been downsampled and turn it into
@@ -221,7 +326,8 @@ def _reduced_array_to_png(x, min_percent=20, max_percent=99.5):
     # Replace NaNs with black pixels
     x = np.nan_to_num(x)
     img_buffer = BytesIO()
-    mimg.imsave(img_buffer, x, format='png', cmap='gray')
+    Image.fromarray((x * 255).astype(np.uint8), mode="L").save(img_buffer,
+                                                               format="PNG")
     return img_buffer.getvalue()
 
 
@@ -257,19 +363,7 @@ def hdu_to_png(hdu, min_percent=20, max_percent=99.5):
     ny, nx = hdu.shape
     downsample = (nx // _PNG_WIDTH) + 1
 
-    if downsample == 1:
-        x = hdu.data
-    else:
-        # Read the image a band at a time. Each band is a whole number of
-        # blocks tall, and rows at the bottom that do not fill a block are
-        # dropped, which is what block_reduce does to the full image.
-        band_height = 100 * downsample
-        n_rows = ny - ny % downsample
-        bands = [block_reduce(hdu.section[start:min(start + band_height,
-                                                    n_rows), :],
-                              block_size=(downsample, downsample))
-                 for start in range(0, n_rows, band_height)]
-        x = np.vstack(bands)
+    x = banded_block_reduce(hdu, downsample)
 
     return _reduced_array_to_png(x, min_percent=min_percent,
                                  max_percent=max_percent)

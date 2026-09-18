@@ -27,6 +27,7 @@ dependencies = [
     "matplotlib",
     "msumastro>=1",
     "numpy",
+    "pillow",
     "scikit-image",
     "scipy",
     "jupyter-app-launcher",
@@ -39,12 +40,18 @@ docs = [
     "sphinx-argparse",
     "sphinx_rtd_theme",
 ]
+test = [
+    "pytest",
+]
 
 [project.scripts]
 reducer = "reducer:main"
 
 [project.urls]
 Homepage = "http://reducer.readthedocs.org"
+
+[tool.pytest.ini_options]
+testpaths = ["reducer/tests"]
 
 [tool.hatch.version]
 source = "vcs"
