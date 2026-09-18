@@ -121,7 +121,9 @@ def test_hdu_to_png_non_2d_returns_none(tmp_path):
 
 
 def test_hdu_to_png_matches_ndarray_to_png(image_hdu):
-    """The banded HDU path and the whole-array path produce identical PNG bytes."""
+    """The banded HDU path and the whole-array path produce identical PNG
+    bytes.
+    """
     assert hdu_to_png(image_hdu) == ndarray_to_png(image_hdu.data)
 
 
