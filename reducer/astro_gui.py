@@ -1,9 +1,13 @@
 from collections import OrderedDict
+from contextlib import ExitStack
+import errno
 import os
 import warnings
 
+from astropy import units as u
 from astropy.io import fits
 from astropy.modeling import models
+from astropy.wcs import WCS
 import ccdproc
 
 import numpy as np
@@ -58,6 +62,199 @@ def _no_uncertainty(data, axis=0):
     when the uncertainty it produces would be discarded anyway.
     """
     return np.zeros(data.shape[1:], dtype=data.dtype)
+
+
+# Names of the extensions in which CCDData keeps anything other than the image.
+_CCDDATA_EXTENSIONS = {'MASK', 'UNCERT', 'PSF'}
+
+_COMBINE_METHODS = {
+    'average': 'average_combine',
+    'median': 'median_combine',
+    'sum': 'sum_combine',
+}
+
+
+def _unit_from_header(header):
+    """
+    Unit of the image with this header, found the way ``CCDData.read`` finds
+    it, or ``None`` if the header has no usable ``BUNIT``.
+    """
+    unit_string = header.get('bunit')
+    if not unit_string or not isinstance(unit_string, str):
+        return None
+    if unit_string.strip().lower() == 'adu':
+        unit_string = unit_string.lower()
+    unit_string = ccdproc.CCDData.known_invalid_fits_unit_strings.get(
+        unit_string, unit_string)
+    try:
+        return u.Unit(unit_string)
+    except ValueError:
+        return None
+
+
+def _wcs_from_header(header):
+    """
+    WCS of the image with this header, or ``None`` if the header has no WCS,
+    which is what ``CCDData.read`` would attach to the image.
+    """
+    try:
+        wcs = WCS(header)
+    except Exception:
+        return None
+    if not wcs.wcs.ctype[0]:
+        return None
+    return wcs
+
+
+def _combine_in_bands(file_list,
+                      method='average',
+                      scale=None,
+                      mem_limit=16e9,
+                      minmax_clip=False,
+                      minmax_clip_min=None,
+                      minmax_clip_max=None,
+                      sigma_clip=False,
+                      sigma_clip_low_thresh=3,
+                      sigma_clip_high_thresh=3,
+                      sigma_clip_func=np.ma.mean,
+                      sigma_clip_dev_func=np.ma.std,
+                      dtype=None,
+                      combine_uncertainty_function=None):
+    """
+    Combine images the way ``ccdproc.combine`` does, but open each file only
+    once and read it one band of rows at a time.
+
+    Parameters
+    ----------
+
+    file_list : list of str
+        Paths of the FITS files to combine.
+
+    method, scale, mem_limit, dtype, combine_uncertainty_function : optional
+        The same meaning, and the same defaults, as the arguments of
+        ``ccdproc.combine`` with the same names.
+
+    minmax_clip, minmax_clip_min, minmax_clip_max : optional
+        As in ``ccdproc.combine``.
+
+    sigma_clip, sigma_clip_low_thresh, sigma_clip_high_thresh : optional
+        As in ``ccdproc.combine``.
+
+    sigma_clip_func, sigma_clip_dev_func : optional
+        As in ``ccdproc.combine``.
+
+    Returns
+    -------
+
+    combined : `ccdproc.CCDData` or None
+        The combined image, with the header, unit and WCS of the first file
+        and no mask or uncertainty. ``None`` if these files cannot be
+        combined this way, in which case nothing has been done and
+        ``ccdproc.combine`` should be used instead. That is the case unless
+        every file has a two-dimensional image in its first HDU, a ``BUNIT``,
+        the same unit and shape as the others, and no mask, uncertainty or
+        PSF extension. It is also the case if there are too many files to
+        have them all open at once.
+
+    Notes
+    -----
+
+    ``ccdproc.combine`` limits memory by combining a piece of the image at a
+    time, but it calls ``CCDData.read`` on every file for every piece. The
+    read is lazy, so that costs little memory, but it costs the time it
+    takes to parse the header and build a WCS, and the number of pieces
+    grows with the number of files. Combining *N* files therefore takes time
+    proportional to *N* squared: 40 frames that are 4096 x 4096 take several
+    minutes with a ``mem_limit`` of 5e7. See
+    https://github.com/astropy/ccdproc/issues/1012.
+
+    Here each file is opened once and each band is read with ``hdu.section``.
+    The bands are the height that ``ccdproc.combine`` would use for the same
+    ``mem_limit``, each one is combined by a ``ccdproc.Combiner`` set up the
+    way ``ccdproc.combine`` would set it up, and every pixel of the result
+    depends only on that pixel in the inputs (and, with ``scale``, on a
+    number found from each whole image beforehand), so the combined image is
+    identical. The one difference is that a band is never less than a whole
+    row, where ``ccdproc.combine`` would go on to split the rows if
+    ``mem_limit`` were too small for even one row of every image.
+    """
+    if method not in _COMBINE_METHODS:
+        raise ValueError(f"unrecognised combine method : {method}.")
+
+    if dtype is None:
+        dtype = np.float64
+
+    with ExitStack() as stack:
+        try:
+            hdu_lists = [stack.enter_context(fits.open(a_file, memmap=False))
+                         for a_file in file_list]
+        except OSError as err:
+            if err.errno != errno.EMFILE:
+                raise
+            # Too many open files; ccdproc.combine opens one at a time.
+            return None
+
+        for hdu_list in hdu_lists:
+            if _CCDDATA_EXTENSIONS & {hdu.name.upper() for hdu in hdu_list}:
+                return None
+
+        hdus = [hdu_list[0] for hdu_list in hdu_lists]
+        shapes = {hdu.shape for hdu in hdus}
+        units = [_unit_from_header(hdu.header) for hdu in hdus]
+        if (len(shapes) != 1 or len(hdus[0].shape) != 2 or
+                any(unit is None or unit != units[0] for unit in units)):
+            return None
+
+        ny, nx = hdus[0].shape
+
+        if callable(scale):
+            # The function is applied to each whole image, one at a time.
+            # Read the image as a section too: ``hdu.data`` would keep the
+            # image on the HDU, and for integers with a BSCALE and a BLANK
+            # it leaves the HDU unable to read a section afterwards.
+            scale = np.array([scale(hdu.section[:, :]) for hdu in hdus])
+
+        # The same arithmetic as ccdproc.combine, which counts an uncertainty
+        # with the dtype of the data and a one byte mask for each image.
+        memory_factor = (3 if method == 'median' else 2) * 1.3
+        size_of_an_image = ny * nx * (2 * np.dtype(dtype).itemsize + 1)
+        n_chunks = int(memory_factor * size_of_an_image * len(hdus) /
+                       mem_limit) + 1
+        band_rows = max(1, int(ny / n_chunks))
+
+        combine_kwds = {}
+        if combine_uncertainty_function is not None:
+            combine_kwds['uncertainty_func'] = combine_uncertainty_function
+
+        result = np.empty((ny, nx), dtype=dtype)
+        for start in range(0, ny, band_rows):
+            stop = min(ny, start + band_rows)
+            bands = [ccdproc.CCDData(hdu.section[start:stop, :],
+                                     unit=units[0])
+                     for hdu in hdus]
+            band_combiner = ccdproc.Combiner(bands, dtype=dtype)
+            if scale is not None:
+                band_combiner.scaling = scale
+            if minmax_clip:
+                band_combiner.minmax_clipping(min_clip=minmax_clip_min,
+                                              max_clip=minmax_clip_max)
+            if sigma_clip:
+                band_combiner.sigma_clipping(
+                    low_thresh=sigma_clip_low_thresh,
+                    high_thresh=sigma_clip_high_thresh,
+                    func=sigma_clip_func,
+                    dev_func=sigma_clip_dev_func
+                )
+            combined_band = getattr(band_combiner,
+                                    _COMBINE_METHODS[method])(**combine_kwds)
+            result[start:stop] = combined_band.data
+            # Free the band before reading the next one.
+            del bands, band_combiner, combined_band
+
+        header = hdus[0].header.copy()
+
+    return ccdproc.CCDData(result, unit=units[0], meta=header,
+                           wcs=_wcs_from_header(header))
 
 
 DEFAULT_IMAGETYPE_MAP = {
@@ -450,9 +647,10 @@ class Combiner(ReducerBase):
         Text displayed next to check box for selecting options.
 
     mem_limit : float, optional
-        Maximum memory, in bytes, that ``ccdproc.combine`` should use for a
-        chunk of the images being combined. If not set, the module-level
-        ``DEFAULT_MEMORY_LIMIT`` is used instead.
+        Maximum memory, in bytes, that should be used for the band of the
+        images being combined at one time; it sets the height of the band the
+        way ``ccdproc.combine`` sets the size of its chunks. If not set, the
+        module-level ``DEFAULT_MEMORY_LIMIT`` is used instead.
     """
     def __init__(self, *args, **kwd):
         group_by_in = kwd.pop('group_by', '')
@@ -624,10 +822,18 @@ class Combiner(ReducerBase):
         if mem_limit is None:
             mem_limit = DEFAULT_MEMORY_LIMIT
 
-        combined = ccdproc.combine(file_list,
-                                   mem_limit=mem_limit,
-                                   dtype=combine_dtype,
-                                   **combine_keyword_args)
+        # ccdproc.combine reads every file again for each piece of the image it
+        # works on, which takes minutes for a few dozen large images, so
+        # combine in bands, opening each file once, whenever that is possible.
+        combined = _combine_in_bands(file_list,
+                                     mem_limit=mem_limit,
+                                     dtype=combine_dtype,
+                                     **combine_keyword_args)
+        if combined is None:
+            combined = ccdproc.combine(file_list,
+                                       mem_limit=mem_limit,
+                                       dtype=combine_dtype,
+                                       **combine_keyword_args)
 
         # Do not keep the mask or uncertainty if the data has neither. Do this
         # before anything else because ccdproc.combine always makes both of
