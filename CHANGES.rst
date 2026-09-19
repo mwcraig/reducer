@@ -22,6 +22,16 @@ Other Changes
   the same but are smaller, about a third fewer bytes for a preview of a
   4096 x 4096 frame, and Pillow is now a dependency.
 
+- ``Combiner`` now opens each image once and combines the images one band of
+  rows at a time, instead of handing the list of files to
+  ``ccdproc.combine``, which reads every file again for each piece of the
+  image it works on, so that the time it took grew as the square of the
+  number of images. Combining 40 images that are 4096 x 4096 took 228
+  seconds and now takes 4; 10 images took 16 seconds and now take 1. The
+  combined image is identical and peak memory is no higher. Images with a
+  mask, uncertainty or PSF extension, without a ``BUNIT``, or whose image is
+  not in the first HDU are still combined by ``ccdproc.combine``.
+
 Bug Fixes
 ^^^^^^^^^
 
