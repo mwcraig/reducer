@@ -35,6 +35,13 @@ Other Changes
 Bug Fixes
 ^^^^^^^^^
 
+- ``Combiner`` no longer lets out the ``FITSFixedWarning`` that astropy issues
+  each time it makes a WCS from a header it has to fix, a deprecated
+  ``RADECSYS`` keyword for example. Combining 10 images of 4096 x 4096 with
+  ``ccdproc.combine`` sent 1,600 of them to the notebook for each filter, and
+  40 images about 25,000, which was enough to freeze the browser, and
+  issuing them made the combine take almost half as long again.
+
 0.9.2 (2026-09-11)
 ------------------
 

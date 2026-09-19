@@ -1,4 +1,5 @@
 import errno
+import warnings
 
 import numpy as np
 
@@ -6,6 +7,7 @@ import pytest
 
 from astropy.io import fits
 from astropy.nddata import CCDData
+from astropy.wcs import WCS, FITSFixedWarning
 import ccdproc
 
 from reducer import astro_gui
@@ -530,3 +532,37 @@ def test_combiner_falls_back_for_images_with_a_mask(tmp_path, monkeypatch):
     assert kwargs['sigma_clip']
     assert combiner.combined.mask is not None
     assert combiner.combined.uncertainty is not None
+
+
+@pytest.mark.parametrize('how', ['banded', 'ccdproc'])
+def test_combiner_is_quiet_about_headers_astropy_fixes(tmp_path, monkeypatch,
+                                                       how):
+    """Combining images whose headers have the deprecated ``RADECSYS``
+    keyword, which astropy warns about every time it makes a WCS from one,
+    lets none of those warnings out of the widget, whichever way the images
+    are combined, and leaves the warning filters as they were.
+    """
+    source = tmp_path / 'source'
+    source.mkdir()
+    paths = write_images(source)
+    for path in paths:
+        fits.setval(path, 'RADECSYS', value='FK5')
+    # Make sure these headers really do bring on the warning.
+    with pytest.warns(FITSFixedWarning, match='RADECSYS'):
+        WCS(fits.getheader(paths[0]))
+
+    if how == 'ccdproc':
+        monkeypatch.setattr(astro_gui, '_combine_in_bands',
+                            lambda *args, **kwargs: None)
+    combiner = make_combiner(source, tmp_path)
+    filters_before = list(warnings.filters)
+    with warnings.catch_warnings(record=True) as caught:
+        warnings.simplefilter('always')
+        combiner.action()
+        filters_during = list(warnings.filters)
+
+    assert not [w for w in caught if issubclass(w.category, FITSFixedWarning)]
+    assert combiner.combined.shape == IMAGE_SHAPE
+    # The filter the widget adds is gone again once it is done.
+    assert filters_during[0][0] == 'always'
+    assert warnings.filters == filters_before

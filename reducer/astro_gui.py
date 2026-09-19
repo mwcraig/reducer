@@ -7,7 +7,7 @@ import warnings
 from astropy import units as u
 from astropy.io import fits
 from astropy.modeling import models
-from astropy.wcs import WCS
+from astropy.wcs import WCS, FITSFixedWarning
 import ccdproc
 
 import numpy as np
@@ -728,22 +728,30 @@ class Combiner(ReducerBase):
 
         groups_to_combine = self._group_by.groups(self.apply_to)
         n_groups = len(groups_to_combine)
-        for idx, combo_group in enumerate(groups_to_combine):
-            self.progress_bar.description = \
-                ("Processing {} of {} "
-                 "(may take several minutes)".format(idx + 1, n_groups))
-            combined = self._action_for_one_group(combo_group)
-            name_addons = ['_'.join([str(k), str(v)])
-                           for k, v in combo_group.items()]
-            fname = [self._file_base_name]
-            fname.extend(name_addons)
-            fname = '_'.join(fname) + '.fit'
-            dest_path = os.path.join(self.destination, fname)
-            combined.write(dest_path)
-            self._combined_path = dest_path
-            # The combined image can be large, so do not hang on to it. The
-            # ``combined`` property re-reads it from disk if it is needed.
-            del combined
+        # astropy warns each time it makes a WCS from a header it has to fix
+        # (a deprecated RADECSYS keyword, for example), and ccdproc.combine
+        # makes one for every file for every piece of the image, which is
+        # thousands of messages, enough to freeze the browser they are sent
+        # to. Nobody combining images can act on them, so leave them out.
+        with warnings.catch_warnings():
+            warnings.simplefilter('ignore', category=FITSFixedWarning)
+            for idx, combo_group in enumerate(groups_to_combine):
+                self.progress_bar.description = \
+                    ("Processing {} of {} "
+                     "(may take several minutes)".format(idx + 1, n_groups))
+                combined = self._action_for_one_group(combo_group)
+                name_addons = ['_'.join([str(k), str(v)])
+                               for k, v in combo_group.items()]
+                fname = [self._file_base_name]
+                fname.extend(name_addons)
+                fname = '_'.join(fname) + '.fit'
+                dest_path = os.path.join(self.destination, fname)
+                combined.write(dest_path)
+                self._combined_path = dest_path
+                # The combined image can be large, so do not hang on to it.
+                # The ``combined`` property re-reads it from disk if it is
+                # needed.
+                del combined
         self.progress_bar.visible = False
         self.progress_bar.layout.display = 'none'
 
