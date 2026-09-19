@@ -42,6 +42,12 @@ Bug Fixes
   40 images about 25,000, which was enough to freeze the browser, and
   issuing them made the combine take almost half as long again.
 
+- ``Combiner`` is also quiet about the NaN that images have where there is no
+  data after they have been shifted to line them up: the warning from sigma
+  clipping that invalid values were clipped, once for each piece of the
+  image, and the division of zero by zero in ccdproc where every image is
+  NaN. Those pixels are left out of the combined image, as they were before.
+
 0.9.2 (2026-09-11)
 ------------------
 

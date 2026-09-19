@@ -7,6 +7,7 @@ import warnings
 from astropy import units as u
 from astropy.io import fits
 from astropy.modeling import models
+from astropy.utils.exceptions import AstropyUserWarning
 from astropy.wcs import WCS, FITSFixedWarning
 import ccdproc
 
@@ -733,8 +734,19 @@ class Combiner(ReducerBase):
         # makes one for every file for every piece of the image, which is
         # thousands of messages, enough to freeze the browser they are sent
         # to. Nobody combining images can act on them, so leave them out.
+        #
+        # Images that have been shifted to line them up have NaN where there
+        # is no data. Sigma clipping leaves those pixels out, which is what is
+        # wanted, and warns about it for each piece of the image, and where
+        # every image is NaN ccdproc divides zero by zero in the uncertainty.
         with warnings.catch_warnings():
             warnings.simplefilter('ignore', category=FITSFixedWarning)
+            warnings.filterwarnings(
+                'ignore', message='Input data contains invalid values',
+                category=AstropyUserWarning)
+            warnings.filterwarnings(
+                'ignore', message='invalid value encountered in divide',
+                category=RuntimeWarning, module='ccdproc')
             for idx, combo_group in enumerate(groups_to_combine):
                 self.progress_bar.description = \
                     ("Processing {} of {} "

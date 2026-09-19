@@ -7,6 +7,7 @@ import pytest
 
 from astropy.io import fits
 from astropy.nddata import CCDData
+from astropy.utils.exceptions import AstropyUserWarning
 from astropy.wcs import WCS, FITSFixedWarning
 import ccdproc
 
@@ -566,3 +567,38 @@ def test_combiner_is_quiet_about_headers_astropy_fixes(tmp_path, monkeypatch,
     # The filter the widget adds is gone again once it is done.
     assert filters_during[0][0] == 'always'
     assert warnings.filters == filters_before
+
+
+@pytest.mark.parametrize('how', ['banded', 'ccdproc'])
+def test_combiner_is_quiet_about_nan_in_shifted_images(tmp_path, monkeypatch,
+                                                       how):
+    """Images shifted to line them up have NaN where there is no data. Sigma
+    clipping them warns about the NaN for every piece of the image, and
+    ccdproc divides zero by zero where every image is NaN; neither warning
+    gets out of the widget, and the combined image is NaN only where every
+    image was.
+    """
+    source = tmp_path / 'source'
+    source.mkdir()
+    for idx, path in enumerate(write_images(source, dtype='float32')):
+        with fits.open(path, mode='update') as hdulist:
+            # NaN in every image in the first rows, in one image in the last.
+            hdulist[0].data[:2, :] = np.nan
+            if idx == 0:
+                hdulist[0].data[-2:, :] = np.nan
+
+    if how == 'ccdproc':
+        monkeypatch.setattr(astro_gui, '_combine_in_bands',
+                            lambda *args, **kwargs: None)
+    combiner = make_combiner(source, tmp_path, median=True, sigma_clip=True)
+    with warnings.catch_warnings(record=True) as caught:
+        warnings.simplefilter('always')
+        combiner.action()
+
+    unwanted = [str(w.message) for w in caught
+                if issubclass(w.category, (AstropyUserWarning,
+                                           RuntimeWarning))]
+    assert not unwanted
+    combined = combiner.combined.data
+    assert np.isnan(combined[:2, :]).all()
+    assert not np.isnan(combined[2:, :]).any()
