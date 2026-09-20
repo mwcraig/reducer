@@ -22,8 +22,31 @@ Other Changes
   the same but are smaller, about a third fewer bytes for a preview of a
   4096 x 4096 frame, and Pillow is now a dependency.
 
+- ``Combiner`` now opens each image once and combines the images one band of
+  rows at a time, instead of handing the list of files to
+  ``ccdproc.combine``, which reads every file again for each piece of the
+  image it works on, so that the time it took grew as the square of the
+  number of images. Combining 40 images that are 4096 x 4096 took 228
+  seconds and now takes 4; 10 images took 16 seconds and now take 1. The
+  combined image is identical and peak memory is no higher. Images with a
+  mask, uncertainty or PSF extension, without a ``BUNIT``, or whose image is
+  not in the first HDU are still combined by ``ccdproc.combine``.
+
 Bug Fixes
 ^^^^^^^^^
+
+- ``Combiner`` no longer lets out the ``FITSFixedWarning`` that astropy issues
+  each time it makes a WCS from a header it has to fix, a deprecated
+  ``RADECSYS`` keyword for example. Combining 10 images of 4096 x 4096 with
+  ``ccdproc.combine`` sent 1,600 of them to the notebook for each filter, and
+  40 images about 25,000, which was enough to freeze the browser, and
+  issuing them made the combine take almost half as long again.
+
+- ``Combiner`` is also quiet about the NaN that images have where there is no
+  data after they have been shifted to line them up: the warning from sigma
+  clipping that invalid values were clipped, once for each piece of the
+  image, and the division of zero by zero in ccdproc where every image is
+  NaN. Those pixels are left out of the combined image, as they were before.
 
 0.9.2 (2026-09-11)
 ------------------
